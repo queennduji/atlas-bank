@@ -1,0 +1,6 @@
+@AtlasBank.ApiGateway_HostAddress = http://localhost:5114
+
+GET {{AtlasBank.ApiGateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

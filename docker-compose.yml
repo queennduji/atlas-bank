@@ -1,0 +1,149 @@
+version: '3.9'
+
+services:
+
+  keycloak-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    networks:
+      - atlas-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    depends_on:
+      - keycloak-db
+    networks:
+      - atlas-net
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: "Atlas@Bank123!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - atlas-net
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: atlas
+      RABBITMQ_DEFAULT_PASS: atlas
+    networks:
+      - atlas-net
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: src/ApiGateway/AtlasBank.ApiGateway/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - keycloak
+      - account-service
+      - transaction-service
+      - ledger-service
+      - notification-service
+    networks:
+      - atlas-net
+
+  account-service:
+    build:
+      context: .
+      dockerfile: src/Services/AccountService/AtlasBank.AccountService/Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AtlasBank_Accounts;User Id=sa;Password=Atlas@Bank123!;TrustServerCertificate=True
+    depends_on:
+      - sqlserver
+      - keycloak
+    networks:
+      - atlas-net
+
+  transaction-service:
+    build:
+      context: .
+      dockerfile: src/Services/TransactionService/AtlasBank.TransactionService/Dockerfile
+    ports:
+      - "5002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AtlasBank_Transactions;User Id=sa;Password=Atlas@Bank123!;TrustServerCertificate=True
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=atlas
+      - RabbitMQ__Password=atlas
+    depends_on:
+      - sqlserver
+      - keycloak
+      - rabbitmq
+    networks:
+      - atlas-net
+
+  ledger-service:
+    build:
+      context: .
+      dockerfile: src/Services/LedgerService/AtlasBank.LedgerService/Dockerfile
+    ports:
+      - "5003:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AtlasBank_Ledger;User Id=sa;Password=Atlas@Bank123!;TrustServerCertificate=True
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=atlas
+      - RabbitMQ__Password=atlas
+    depends_on:
+      - sqlserver
+      - keycloak
+      - rabbitmq
+    networks:
+      - atlas-net
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: src/Services/NotificationService/AtlasBank.NotificationService/Dockerfile
+    ports:
+      - "5004:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=atlas
+      - RabbitMQ__Password=atlas
+    depends_on:
+      - keycloak
+      - rabbitmq
+    networks:
+      - atlas-net
+
+volumes:
+  keycloak-db-data:
+  sqlserver-data:
+
+networks:
+  atlas-net:
+    driver: bridge

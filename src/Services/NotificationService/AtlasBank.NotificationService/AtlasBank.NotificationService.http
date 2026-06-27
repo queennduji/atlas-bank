@@ -1,0 +1,6 @@
+@AtlasBank.NotificationService_HostAddress = http://localhost:5264
+
+GET {{AtlasBank.NotificationService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
