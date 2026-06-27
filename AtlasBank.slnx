@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/ApiGateway/">
+    <Project Path="src/ApiGateway/AtlasBank.ApiGateway/AtlasBank.ApiGateway.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/AccountService/">
+    <Project Path="src/Services/AccountService/AtlasBank.AccountService/AtlasBank.AccountService.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/LedgerService/">
+    <Project Path="src/Services/LedgerService/AtlasBank.LedgerService/AtlasBank.LedgerService.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/NotificationService/">
+    <Project Path="src/Services/NotificationService/AtlasBank.NotificationService/AtlasBank.NotificationService.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/TransactionService/">
+    <Project Path="src/Services/TransactionService/AtlasBank.TransactionService/AtlasBank.TransactionService.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/AtlasBank.Shared/AtlasBank.Shared.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,6 @@
+@AtlasBank.TransactionService_HostAddress = http://localhost:5259
+
+GET {{AtlasBank.TransactionService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
