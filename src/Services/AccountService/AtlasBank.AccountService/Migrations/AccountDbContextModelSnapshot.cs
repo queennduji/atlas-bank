@@ -47,10 +47,8 @@ namespace AtlasBank.AccountService.Migrations
                         .HasMaxLength(3)
                         .HasColumnType("nvarchar(3)");
 
-                    b.Property<string>("OwnerId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -65,7 +63,7 @@ namespace AtlasBank.AccountService.Migrations
                     b.HasIndex("AccountNumber")
                         .IsUnique();
 
-                    b.HasIndex("OwnerId");
+                    b.HasIndex("CustomerId");
 
                     b.ToTable("Accounts");
                 });

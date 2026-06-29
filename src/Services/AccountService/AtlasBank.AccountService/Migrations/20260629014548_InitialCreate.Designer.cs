@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AtlasBank.AccountService.Migrations
 {
     [DbContext(typeof(AccountDbContext))]
-    [Migration("20260627235536_InitialCreate")]
+    [Migration("20260629014548_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -50,10 +50,8 @@ namespace AtlasBank.AccountService.Migrations
                         .HasMaxLength(3)
                         .HasColumnType("nvarchar(3)");
 
-                    b.Property<string>("OwnerId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -68,7 +66,7 @@ namespace AtlasBank.AccountService.Migrations
                     b.HasIndex("AccountNumber")
                         .IsUnique();
 
-                    b.HasIndex("OwnerId");
+                    b.HasIndex("CustomerId");
 
                     b.ToTable("Accounts");
                 });

@@ -5,7 +5,7 @@ namespace AtlasBank.AccountService.Domain.Entities;
 public class Account
 {
     public Guid Id { get; private set; }
-    public string OwnerId { get; private set; } = default!;
+    public Guid CustomerId { get; private set; }
     public string AccountNumber { get; private set; } = default!;
     public AccountType Type { get; private set; }
     public AccountStatus Status { get; private set; }
@@ -16,12 +16,12 @@ public class Account
 
     private Account() { }
 
-    public static Account Create(string ownerId, AccountType type, string currency = "USD")
+    public static Account Create(Guid customerId, AccountType type, string currency = "USD")
     {
         return new Account
         {
             Id = Guid.NewGuid(),
-            OwnerId = ownerId,
+            CustomerId = customerId,
             AccountNumber = GenerateAccountNumber(),
             Type = type,
             Status = AccountStatus.Active,

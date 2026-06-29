@@ -1,21 +1,15 @@
-using AtlasBank.AccountService.Data;
-using AtlasBank.AccountService.Data.Repositories;
-using AtlasBank.AccountService.Features.Accounts;
-using AtlasBank.AccountService.Infrastructure;
+using AtlasBank.CustomerService.Data;
+using AtlasBank.CustomerService.Data.Repositories;
+using AtlasBank.CustomerService.Features.Customers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<AccountDbContext>(options =>
+builder.Services.AddDbContext<CustomerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-
-builder.Services.AddHttpClient<ICustomerServiceClient, CustomerServiceClient>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["CustomerService:BaseUrl"]!);
-});
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -33,13 +27,13 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<AccountDbContext>();
+    var db = scope.ServiceProvider.GetRequiredService<CustomerDbContext>();
     db.Database.Migrate();
 }
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapAccountEndpoints();
+app.MapCustomerEndpoints();
 
 app.Run();

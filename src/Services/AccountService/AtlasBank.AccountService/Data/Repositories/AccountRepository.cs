@@ -11,8 +11,8 @@ public class AccountRepository(AccountDbContext db) : IAccountRepository
     public Task<Account?> GetByAccountNumberAsync(string accountNumber, CancellationToken ct = default) =>
         db.Accounts.FirstOrDefaultAsync(a => a.AccountNumber == accountNumber, ct);
 
-    public async Task<IReadOnlyList<Account>> GetByOwnerIdAsync(string ownerId, CancellationToken ct = default) =>
-        await db.Accounts.Where(a => a.OwnerId == ownerId).ToListAsync(ct);
+    public async Task<IReadOnlyList<Account>> GetByCustomerIdAsync(Guid customerId, CancellationToken ct = default) =>
+        await db.Accounts.Where(a => a.CustomerId == customerId).ToListAsync(ct);
 
     public async Task AddAsync(Account account, CancellationToken ct = default) =>
         await db.Accounts.AddAsync(account, ct);

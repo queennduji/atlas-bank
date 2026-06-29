@@ -7,6 +7,9 @@
   <Folder Name="/src/Services/AccountService/">
     <Project Path="src/Services/AccountService/AtlasBank.AccountService/AtlasBank.AccountService.csproj" />
   </Folder>
+  <Folder Name="/src/Services/CustomerService/">
+    <Project Path="src/Services/CustomerService/AtlasBank.CustomerService/AtlasBank.CustomerService.csproj" />
+  </Folder>
   <Folder Name="/src/Services/LedgerService/">
     <Project Path="src/Services/LedgerService/AtlasBank.LedgerService/AtlasBank.LedgerService.csproj" />
   </Folder>
