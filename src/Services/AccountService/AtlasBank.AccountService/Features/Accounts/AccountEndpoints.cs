@@ -1,5 +1,6 @@
 using AtlasBank.AccountService.Data.Repositories;
 using AtlasBank.AccountService.Domain.Entities;
+using AtlasBank.AccountService.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AtlasBank.AccountService.Features.Accounts;
@@ -18,13 +19,18 @@ public static class AccountEndpoints
     private static async Task<IResult> CreateAccount(
         [FromBody] CreateAccountRequest request,
         IAccountRepository repo,
+        ICustomerServiceClient customerClient,
         HttpContext http,
         CancellationToken ct)
     {
-        var ownerId = http.User.FindFirst("sub")?.Value;
-        if (ownerId is null) return Results.Unauthorized();
+        var keycloakUserId = http.User.FindFirst("sub")?.Value;
+        if (keycloakUserId is null) return Results.Unauthorized();
 
-        var account = Account.Create(ownerId, request.Type, request.Currency);
+        var customer = await customerClient.GetByKeycloakUserIdAsync(keycloakUserId, ct);
+        if (customer is null)
+            return Results.BadRequest("No customer profile found. Please register as a customer first.");
+
+        var account = Account.Create(customer.Id, request.Type, request.Currency);
         await repo.AddAsync(account, ct);
         await repo.SaveChangesAsync(ct);
 
@@ -34,30 +40,37 @@ public static class AccountEndpoints
     private static async Task<IResult> GetById(
         Guid id,
         IAccountRepository repo,
+        ICustomerServiceClient customerClient,
         HttpContext http,
         CancellationToken ct)
     {
         var account = await repo.GetByIdAsync(id, ct);
         if (account is null) return Results.NotFound();
 
-        var ownerId = http.User.FindFirst("sub")?.Value;
-        if (account.OwnerId != ownerId) return Results.Forbid();
+        var keycloakUserId = http.User.FindFirst("sub")?.Value;
+        var customer = await customerClient.GetByKeycloakUserIdAsync(keycloakUserId!, ct);
+        if (customer is null || account.CustomerId != customer.Id) return Results.Forbid();
 
         return Results.Ok(ToResponse(account));
     }
 
     private static async Task<IResult> GetMyAccounts(
         IAccountRepository repo,
+        ICustomerServiceClient customerClient,
         HttpContext http,
         CancellationToken ct)
     {
-        var ownerId = http.User.FindFirst("sub")?.Value;
-        if (ownerId is null) return Results.Unauthorized();
+        var keycloakUserId = http.User.FindFirst("sub")?.Value;
+        if (keycloakUserId is null) return Results.Unauthorized();
 
-        var accounts = await repo.GetByOwnerIdAsync(ownerId, ct);
+        var customer = await customerClient.GetByKeycloakUserIdAsync(keycloakUserId, ct);
+        if (customer is null)
+            return Results.BadRequest("No customer profile found. Please register as a customer first.");
+
+        var accounts = await repo.GetByCustomerIdAsync(customer.Id, ct);
         return Results.Ok(accounts.Select(ToResponse));
     }
 
-    private static AccountResponse ToResponse(Domain.Entities.Account a) =>
-        new(a.Id, a.OwnerId, a.AccountNumber, a.Type, a.Status, a.Balance, a.Currency, a.CreatedAt);
+    private static AccountResponse ToResponse(Account a) =>
+        new(a.Id, a.CustomerId, a.AccountNumber, a.Type, a.Status, a.Balance, a.Currency, a.CreatedAt);
 }

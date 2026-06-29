@@ -16,7 +16,7 @@ namespace AtlasBank.AccountService.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OwnerId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AccountNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -37,9 +37,9 @@ namespace AtlasBank.AccountService.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Accounts_OwnerId",
+                name: "IX_Accounts_CustomerId",
                 table: "Accounts",
-                column: "OwnerId");
+                column: "CustomerId");
         }
 
         /// <inheritdoc />

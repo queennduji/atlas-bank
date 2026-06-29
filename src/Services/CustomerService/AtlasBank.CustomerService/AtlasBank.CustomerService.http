@@ -1,0 +1,6 @@
+@AtlasBank.CustomerService_HostAddress = http://localhost:5239
+
+GET {{AtlasBank.CustomerService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

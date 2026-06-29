@@ -6,7 +6,7 @@ public record CreateAccountRequest(AccountType Type, string Currency = "USD");
 
 public record AccountResponse(
     Guid Id,
-    string OwnerId,
+    Guid CustomerId,
     string AccountNumber,
     AccountType Type,
     AccountStatus Status,
