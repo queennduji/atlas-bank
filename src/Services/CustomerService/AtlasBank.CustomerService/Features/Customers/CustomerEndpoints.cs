@@ -2,6 +2,7 @@ using AtlasBank.CustomerService.Data.Repositories;
 using AtlasBank.CustomerService.Domain.Entities;
 using AtlasBank.CustomerService.Domain.ValueObjects;
 using AtlasBank.CustomerService.Infrastructure;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AtlasBank.CustomerService.Features.Customers;
@@ -25,8 +26,12 @@ public static class CustomerEndpoints
         [FromBody] RegisterCustomerRequest request,
         ICustomerRepository repo,
         IKeycloakAdminClient keycloak,
+        IValidator<RegisterCustomerRequest> validator,
         CancellationToken ct)
     {
+        var validationError = await ValidationHelper.ValidateAsync(validator, request, ct);
+        if (validationError is not null) return validationError;
+
         if (await repo.ExistsByEmailAsync(request.Email, ct))
             return Results.Conflict("A customer with this email already exists.");
 
@@ -76,9 +81,13 @@ public static class CustomerEndpoints
     private static async Task<IResult> UpdateMe(
         [FromBody] UpdateCustomerRequest request,
         ICustomerRepository repo,
+        IValidator<UpdateCustomerRequest> validator,
         HttpContext http,
         CancellationToken ct)
     {
+        var validationError = await ValidationHelper.ValidateAsync(validator, request, ct);
+        if (validationError is not null) return validationError;
+
         var keycloakUserId = http.User.FindFirst("sub")?.Value;
         if (keycloakUserId is null) return Results.Unauthorized();
 

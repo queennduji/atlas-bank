@@ -1,6 +1,7 @@
 using AtlasBank.AccountService.Data.Repositories;
 using AtlasBank.AccountService.Domain.Entities;
 using AtlasBank.AccountService.Infrastructure;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AtlasBank.AccountService.Features.Accounts;
@@ -20,9 +21,13 @@ public static class AccountEndpoints
         [FromBody] CreateAccountRequest request,
         IAccountRepository repo,
         ICustomerServiceClient customerClient,
+        IValidator<CreateAccountRequest> validator,
         HttpContext http,
         CancellationToken ct)
     {
+        var validationError = await ValidationHelper.ValidateAsync(validator, request, ct);
+        if (validationError is not null) return validationError;
+
         var keycloakUserId = http.User.FindFirst("sub")?.Value;
         if (keycloakUserId is null) return Results.Unauthorized();
 

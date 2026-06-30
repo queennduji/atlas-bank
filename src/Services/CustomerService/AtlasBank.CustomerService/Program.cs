@@ -2,6 +2,7 @@ using AtlasBank.CustomerService.Data;
 using AtlasBank.CustomerService.Data.Repositories;
 using AtlasBank.CustomerService.Features.Customers;
 using AtlasBank.CustomerService.Infrastructure;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,7 @@ builder.Services.AddDbContext<CustomerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterCustomerValidator>();
 
 builder.Services.AddHttpClient<IKeycloakAdminClient, KeycloakAdminClient>(client =>
 {
