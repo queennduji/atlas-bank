@@ -1,6 +1,7 @@
 using AtlasBank.CustomerService.Data;
 using AtlasBank.CustomerService.Data.Repositories;
 using AtlasBank.CustomerService.Features.Customers;
+using AtlasBank.CustomerService.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +11,11 @@ builder.Services.AddDbContext<CustomerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+
+builder.Services.AddHttpClient<IKeycloakAdminClient, KeycloakAdminClient>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Keycloak:BaseUrl"]!);
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
