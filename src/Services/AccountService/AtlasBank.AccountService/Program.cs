@@ -2,6 +2,7 @@ using AtlasBank.AccountService.Data;
 using AtlasBank.AccountService.Data.Repositories;
 using AtlasBank.AccountService.Features.Accounts;
 using AtlasBank.AccountService.Infrastructure;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,7 @@ builder.Services.AddDbContext<AccountDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateAccountValidator>();
 
 builder.Services.AddHttpClient<ICustomerServiceClient, CustomerServiceClient>(client =>
 {
