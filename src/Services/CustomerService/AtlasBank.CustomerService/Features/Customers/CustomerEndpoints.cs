@@ -1,6 +1,7 @@
 using AtlasBank.CustomerService.Data.Repositories;
 using AtlasBank.CustomerService.Domain.Entities;
 using AtlasBank.CustomerService.Domain.ValueObjects;
+using AtlasBank.CustomerService.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AtlasBank.CustomerService.Features.Customers;
@@ -9,9 +10,10 @@ public static class CustomerEndpoints
 {
     public static void MapCustomerEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/customers").RequireAuthorization();
+        // Registration is public — user has no token yet
+        app.MapPost("/api/customers/register", Register);
 
-        group.MapPost("/register", Register);
+        var group = app.MapGroup("/api/customers").RequireAuthorization();
         group.MapGet("/me", GetMe);
         group.MapPut("/me", UpdateMe);
 
@@ -22,17 +24,22 @@ public static class CustomerEndpoints
     private static async Task<IResult> Register(
         [FromBody] RegisterCustomerRequest request,
         ICustomerRepository repo,
-        HttpContext http,
+        IKeycloakAdminClient keycloak,
         CancellationToken ct)
     {
-        var keycloakUserId = http.User.FindFirst("sub")?.Value;
-        if (keycloakUserId is null) return Results.Unauthorized();
-
-        if (await repo.ExistsByKeycloakUserIdAsync(keycloakUserId, ct))
-            return Results.Conflict("A customer profile already exists for this account.");
-
         if (await repo.ExistsByEmailAsync(request.Email, ct))
             return Results.Conflict("A customer with this email already exists.");
+
+        string keycloakUserId;
+        try
+        {
+            keycloakUserId = await keycloak.CreateUserAsync(
+                request.FirstName, request.LastName, request.Email, request.Password, ct);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.Conflict(ex.Message);
+        }
 
         var customer = Customer.Create(
             keycloakUserId,
