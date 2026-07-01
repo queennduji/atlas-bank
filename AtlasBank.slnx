@@ -22,4 +22,11 @@
   <Folder Name="/src/Shared/">
     <Project Path="src/Shared/AtlasBank.Shared/AtlasBank.Shared.csproj" />
   </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/AccountService/">
+    <Project Path="tests/AccountService/AtlasBank.AccountService.IntegrationTests/AtlasBank.AccountService.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/CustomerService/">
+    <Project Path="tests/CustomerService/AtlasBank.CustomerService.IntegrationTests/AtlasBank.CustomerService.IntegrationTests.csproj" />
+  </Folder>
 </Solution>
