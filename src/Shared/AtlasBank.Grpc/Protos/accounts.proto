@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option csharp_namespace = "AtlasBank.Grpc";
+
+package accounts;
+
+service AccountGrpcService {
+  rpc GetAccount (GetAccountRequest) returns (AccountReply);
+  rpc Credit (BalanceChangeRequest) returns (BalanceChangeReply);
+  rpc Debit (BalanceChangeRequest) returns (BalanceChangeReply);
+}
+
+message GetAccountRequest {
+  string account_id = 1;
+}
+
+message AccountReply {
+  string id = 1;
+  string customer_id = 2;
+  string account_number = 3;
+  int32 status = 4;
+  double balance = 5;
+  string currency = 6;
+  bool found = 7;
+}
+
+message BalanceChangeRequest {
+  string account_id = 1;
+  double amount = 2;
+}
+
+message BalanceChangeReply {
+  bool success = 1;
+  double new_balance = 2;
+  string error = 3;
+}

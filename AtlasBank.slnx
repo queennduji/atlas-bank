@@ -20,6 +20,7 @@
     <Project Path="src/Services/TransactionService/AtlasBank.TransactionService/AtlasBank.TransactionService.csproj" />
   </Folder>
   <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/AtlasBank.Grpc/AtlasBank.Grpc.csproj" />
     <Project Path="src/Shared/AtlasBank.Shared/AtlasBank.Shared.csproj" />
   </Folder>
   <Folder Name="/tests/" />
