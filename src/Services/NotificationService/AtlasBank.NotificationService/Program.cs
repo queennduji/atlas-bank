@@ -1,34 +1,81 @@
+using System.Text.Json.Serialization;
+using AtlasBank.Grpc;
+using AtlasBank.NotificationService.Data;
+using AtlasBank.NotificationService.Data.Repositories;
+using AtlasBank.NotificationService.Features.Notifications;
+using AtlasBank.NotificationService.Infrastructure;
+using AtlasBank.NotificationService.Messaging.Consumers;
+using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddDbContext<NotificationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+
+// Account service via gRPC
+builder.Services.AddGrpcClient<AccountGrpcService.AccountGrpcServiceClient>(o =>
+{
+    o.Address = new Uri(builder.Configuration["AccountService:GrpcUrl"]!);
+});
+builder.Services.AddScoped<IAccountServiceClient, AccountServiceClient>();
+
+// Customer service via REST (internal endpoint)
+builder.Services.AddHttpClient<ICustomerServiceClient, CustomerServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["CustomerService:BaseUrl"]!);
+});
+
+builder.Services.AddSingleton<IEmailService, ConsoleEmailService>();
+builder.Services.AddSingleton<ISmsService, ConsoleSmsService>();
+builder.Services.AddSingleton<IPushNotificationService, ConsolePushNotificationService>();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<TransactionCompletedConsumer>();
+
+    x.UsingRabbitMq((ctx, cfg) =>
+    {
+        cfg.Host(builder.Configuration["RabbitMQ:Host"], "/", h =>
+        {
+            h.Username(builder.Configuration["RabbitMQ:Username"]!);
+            h.Password(builder.Configuration["RabbitMQ:Password"]!);
+        });
+        cfg.ConfigureEndpoints(ctx);
+    });
+});
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = builder.Configuration["Keycloak:Authority"];
+        options.Audience = builder.Configuration["Keycloak:Audience"];
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+        options.MapInboundClaims = false;
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
+if (app.Environment.IsDevelopment())
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
+    db.Database.Migrate();
+}
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-});
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapNotificationEndpoints();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+public partial class Program { }
