@@ -1,3 +1,4 @@
+using AtlasBank.Grpc;
 using AtlasBank.TransactionService.Data;
 using AtlasBank.TransactionService.Data.Repositories;
 using AtlasBank.TransactionService.Features.Transactions;
@@ -15,10 +16,11 @@ builder.Services.AddDbContext<TransactionDbContext>(options =>
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddValidatorsFromAssemblyContaining<DepositValidator>();
 
-builder.Services.AddHttpClient<IAccountServiceClient, AccountServiceClient>(client =>
+builder.Services.AddGrpcClient<AccountGrpcService.AccountGrpcServiceClient>(o =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["AccountService:BaseUrl"]!);
+    o.Address = new Uri(builder.Configuration["AccountService:GrpcUrl"]!);
 });
+builder.Services.AddScoped<IAccountServiceClient, AccountServiceClient>();
 
 builder.Services.AddMassTransit(x =>
 {
