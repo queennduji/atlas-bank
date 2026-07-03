@@ -1,7 +1,7 @@
 using AtlasBank.TransactionService.Data.Repositories;
 using AtlasBank.TransactionService.Domain.Entities;
 using AtlasBank.TransactionService.Infrastructure;
-using AtlasBank.TransactionService.Messaging.Events;
+using AtlasBank.Shared.Messaging.Events;
 using FluentValidation;
 using MassTransit;
 

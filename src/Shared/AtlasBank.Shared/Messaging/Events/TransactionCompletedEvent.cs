@@ -1,4 +1,4 @@
-namespace AtlasBank.TransactionService.Messaging.Events;
+namespace AtlasBank.Shared.Messaging.Events;
 
 public record TransactionCompletedEvent(
     Guid TransactionId,
