@@ -1,6 +1,7 @@
 using AtlasBank.AccountService.Data;
 using AtlasBank.AccountService.Data.Repositories;
 using AtlasBank.AccountService.Features.Accounts;
+using AtlasBank.AccountService.Features.Internal;
 using AtlasBank.AccountService.Infrastructure;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -43,5 +44,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAccountEndpoints();
+app.MapInternalAccountEndpoints();
 
 app.Run();
