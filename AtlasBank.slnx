@@ -7,6 +7,9 @@
   <Folder Name="/src/Services/AccountService/">
     <Project Path="src/Services/AccountService/AtlasBank.AccountService/AtlasBank.AccountService.csproj" />
   </Folder>
+  <Folder Name="/src/Services/CardService/">
+    <Project Path="src/Services/CardService/AtlasBank.CardService/AtlasBank.CardService.csproj" />
+  </Folder>
   <Folder Name="/src/Services/CustomerService/">
     <Project Path="src/Services/CustomerService/AtlasBank.CustomerService/AtlasBank.CustomerService.csproj" />
   </Folder>
@@ -26,6 +29,9 @@
   <Folder Name="/tests/" />
   <Folder Name="/tests/AccountService/">
     <Project Path="tests/AccountService/AtlasBank.AccountService.IntegrationTests/AtlasBank.AccountService.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/CardService/">
+    <Project Path="tests/CardService/AtlasBank.CardService.IntegrationTests/AtlasBank.CardService.IntegrationTests.csproj" />
   </Folder>
   <Folder Name="/tests/CustomerService/">
     <Project Path="tests/CustomerService/AtlasBank.CustomerService.IntegrationTests/AtlasBank.CustomerService.IntegrationTests.csproj" />
