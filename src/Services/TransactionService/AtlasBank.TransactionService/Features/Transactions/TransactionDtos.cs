@@ -2,11 +2,11 @@ using AtlasBank.TransactionService.Domain.Enums;
 
 namespace AtlasBank.TransactionService.Features.Transactions;
 
-public record DepositRequest(Guid AccountId, decimal Amount, string Currency = "USD", string? Description = null);
+public record DepositRequest(Guid AccountId, decimal Amount, string? Description = null);
 
-public record WithdrawRequest(Guid AccountId, decimal Amount, string Currency = "USD", string? Description = null);
+public record WithdrawRequest(Guid AccountId, decimal Amount, string? Description = null);
 
-public record TransferRequest(Guid FromAccountId, Guid ToAccountId, decimal Amount, string Currency = "USD", string? Description = null);
+public record TransferRequest(Guid FromAccountId, Guid ToAccountId, decimal Amount, string? Description = null);
 
 public record TransactionResponse(
     Guid Id,
