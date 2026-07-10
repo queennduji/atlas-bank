@@ -35,7 +35,7 @@ public static class TransactionEndpoints
         if (account is null) return Results.NotFound("Account not found.");
         if (account.Status != 0) return Results.BadRequest("Account is not active.");
 
-        var transaction = Transaction.CreateDeposit(request.AccountId, request.Amount, request.Currency, request.Description);
+        var transaction = Transaction.CreateDeposit(request.AccountId, request.Amount, account.Currency, request.Description);
         await repo.AddAsync(transaction, ct);
         await repo.SaveChangesAsync(ct);
 
@@ -74,7 +74,7 @@ public static class TransactionEndpoints
         if (account.Status != 0) return Results.BadRequest("Account is not active.");
         if (account.Balance < request.Amount) return Results.BadRequest("Insufficient funds.");
 
-        var transaction = Transaction.CreateWithdrawal(request.AccountId, request.Amount, request.Currency, request.Description);
+        var transaction = Transaction.CreateWithdrawal(request.AccountId, request.Amount, account.Currency, request.Description);
         await repo.AddAsync(transaction, ct);
         await repo.SaveChangesAsync(ct);
 
@@ -117,7 +117,7 @@ public static class TransactionEndpoints
         if (toAccount is null) return Results.NotFound("Destination account not found.");
         if (toAccount.Status != 0) return Results.BadRequest("Destination account is not active.");
 
-        var transaction = Transaction.CreateTransfer(request.FromAccountId, request.ToAccountId, request.Amount, request.Currency, request.Description);
+        var transaction = Transaction.CreateTransfer(request.FromAccountId, request.ToAccountId, request.Amount, fromAccount.Currency, request.Description);
         await repo.AddAsync(transaction, ct);
         await repo.SaveChangesAsync(ct);
 
