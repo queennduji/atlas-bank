@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+option csharp_namespace = "AtlasBank.Grpc";
+
+package transactions;
+
+service TransactionGrpcService {
+  rpc GetTransactionsByAccount (GetTransactionsByAccountRequest) returns (TransactionListReply);
+}
+
+message GetTransactionsByAccountRequest {
+  string account_id = 1;
+  string period_start = 2;
+  string period_end = 3;
+}
+
+message TransactionMessage {
+  string id = 1;
+  string account_id = 2;
+  string to_account_id = 3;
+  string type = 4;
+  string status = 5;
+  double amount = 6;
+  string currency = 7;
+  string reference = 8;
+  string description = 9;
+  string created_at = 10;
+  string completed_at = 11;
+}
+
+message TransactionListReply {
+  repeated TransactionMessage transactions = 1;
+}

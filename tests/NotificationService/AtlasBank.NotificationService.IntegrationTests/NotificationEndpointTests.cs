@@ -1,14 +1,14 @@
-using System.Net;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using AtlasBank.NotificationService.Data;
 using AtlasBank.NotificationService.Domain.Entities;
 using AtlasBank.NotificationService.Features.Notifications;
 using AtlasBank.NotificationService.IntegrationTests.Infrastructure;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AtlasBank.NotificationService.IntegrationTests;
 
@@ -47,7 +47,7 @@ public class NotificationEndpointTests : IClassFixture<NotificationServiceFactor
         return notification;
     }
 
-    // ─── GetById ───────────────────────────────────────────────────────────────
+    // GetById 
 
     [Fact]
     public async Task GetById_ExistingNotification_Returns200()
@@ -82,7 +82,7 @@ public class NotificationEndpointTests : IClassFixture<NotificationServiceFactor
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    // ─── GetByCustomer ─────────────────────────────────────────────────────────
+    // GetByCustomer 
 
     [Fact]
     public async Task GetByCustomer_ReturnsNotificationsForCustomer()

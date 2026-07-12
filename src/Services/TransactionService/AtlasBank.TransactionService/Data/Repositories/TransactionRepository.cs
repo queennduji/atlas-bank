@@ -14,6 +14,14 @@ public class TransactionRepository(TransactionDbContext db) : ITransactionReposi
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync(ct);
 
+    public Task<List<Transaction>> GetByAccountIdAsync(Guid accountId, DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default)
+        => db.Transactions
+            .Where(t => (t.AccountId == accountId || t.ToAccountId == accountId)
+                     && t.CreatedAt >= from && t.CreatedAt <= to
+                     && t.Status == Domain.Enums.TransactionStatus.Completed)
+            .OrderBy(t => t.CreatedAt)
+            .ToListAsync(ct);
+
     public async Task AddAsync(Transaction transaction, CancellationToken ct = default)
         => await db.Transactions.AddAsync(transaction, ct);
 

@@ -20,8 +20,9 @@ builder.Services.AddGrpcClient<AccountGrpcService.AccountGrpcServiceClient>(opti
     options.Address = new Uri(builder.Configuration["AccountService:GrpcUrl"]!));
 builder.Services.AddScoped<IAccountServiceClient, AccountServiceClient>();
 
-builder.Services.AddHttpClient<ICustomerServiceClient, CustomerServiceClient>(client =>
-    client.BaseAddress = new Uri(builder.Configuration["CustomerService:BaseUrl"]!));
+builder.Services.AddGrpcClient<CustomerGrpcService.CustomerGrpcServiceClient>(o =>
+    o.Address = new Uri(builder.Configuration["CustomerService:GrpcUrl"]!));
+builder.Services.AddScoped<ICustomerServiceClient, CustomerServiceClient>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<IssueCardValidator>();
 

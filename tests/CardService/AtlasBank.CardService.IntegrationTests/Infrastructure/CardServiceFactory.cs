@@ -42,7 +42,8 @@ public class CardServiceFactory : WebApplicationFactory<Program>, IAsyncLifetime
             services.RemoveAll<IAccountServiceClient>();
             services.AddSingleton<IAccountServiceClient>(FakeAccountClient);
 
-            // Replace customer service client
+            // Replace customer service (gRPC client + interface)
+            services.RemoveAll<CustomerGrpcService.CustomerGrpcServiceClient>();
             services.RemoveAll<ICustomerServiceClient>();
             services.AddSingleton<ICustomerServiceClient>(FakeCustomerClient);
 

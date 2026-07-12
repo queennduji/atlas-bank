@@ -45,7 +45,8 @@ public class NotificationServiceFactory : WebApplicationFactory<Program>, IAsync
             services.RemoveAll<IAccountServiceClient>();
             services.AddSingleton<IAccountServiceClient>(FakeAccountClient);
 
-            // Replace customer service
+            // Replace customer service (gRPC client + interface)
+            services.RemoveAll<CustomerGrpcService.CustomerGrpcServiceClient>();
             services.RemoveAll<ICustomerServiceClient>();
             services.AddSingleton<ICustomerServiceClient>(FakeCustomerClient);
 

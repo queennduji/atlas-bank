@@ -18,9 +18,6 @@ public static class CustomerEndpoints
         group.MapGet("/me", GetMe);
         group.MapPut("/me", UpdateMe);
 
-        // Internal endpoints for service-to-service calls — not exposed via API Gateway
-        app.MapGet("/internal/customers/{id:guid}", GetById);
-        app.MapGet("/internal/customers/by-keycloak-id/{keycloakUserId}", GetByKeycloakId);
     }
 
     private static async Task<IResult> Register(

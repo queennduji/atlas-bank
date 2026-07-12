@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option csharp_namespace = "AtlasBank.Grpc";
+
+package customers;
+
+service CustomerGrpcService {
+  rpc GetCustomer (GetCustomerRequest) returns (CustomerReply);
+  rpc GetCustomerByKeycloakId (GetCustomerByKeycloakIdRequest) returns (CustomerReply);
+}
+
+message GetCustomerRequest {
+  string customer_id = 1;
+}
+
+message GetCustomerByKeycloakIdRequest {
+  string keycloak_user_id = 1;
+}
+
+message CustomerReply {
+  bool found = 1;
+  string id = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string email = 5;
+  string phone_number = 6;
+}
