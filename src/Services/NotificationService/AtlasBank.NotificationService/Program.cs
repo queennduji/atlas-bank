@@ -23,11 +23,12 @@ builder.Services.AddGrpcClient<AccountGrpcService.AccountGrpcServiceClient>(o =>
 });
 builder.Services.AddScoped<IAccountServiceClient, AccountServiceClient>();
 
-// Customer service via REST (internal endpoint)
-builder.Services.AddHttpClient<ICustomerServiceClient, CustomerServiceClient>(client =>
+// Customer service via gRPC
+builder.Services.AddGrpcClient<CustomerGrpcService.CustomerGrpcServiceClient>(o =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["CustomerService:BaseUrl"]!);
+    o.Address = new Uri(builder.Configuration["CustomerService:GrpcUrl"]!);
 });
+builder.Services.AddScoped<ICustomerServiceClient, CustomerServiceClient>();
 
 builder.Services.AddSingleton<IEmailService, ConsoleEmailService>();
 builder.Services.AddSingleton<ISmsService, ConsoleSmsService>();

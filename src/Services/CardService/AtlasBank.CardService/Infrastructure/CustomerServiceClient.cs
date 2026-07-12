@@ -1,13 +1,21 @@
-using System.Net.Http.Json;
+using AtlasBank.Grpc;
 
 namespace AtlasBank.CardService.Infrastructure;
 
-public class CustomerServiceClient(HttpClient httpClient) : ICustomerServiceClient
+public class CustomerServiceClient(CustomerGrpcService.CustomerGrpcServiceClient grpcClient) : ICustomerServiceClient
 {
     public async Task<CustomerDto?> GetByIdAsync(Guid customerId, CancellationToken ct = default)
     {
-        var response = await httpClient.GetAsync($"/internal/customers/{customerId}", ct);
-        if (!response.IsSuccessStatusCode) return null;
-        return await response.Content.ReadFromJsonAsync<CustomerDto>(ct);
+        var reply = await grpcClient.GetCustomerAsync(
+            new GetCustomerRequest { CustomerId = customerId.ToString() }, cancellationToken: ct);
+
+        if (!reply.Found) return null;
+
+        return new CustomerDto(
+            Guid.Parse(reply.Id),
+            reply.FirstName,
+            reply.LastName,
+            reply.Email,
+            reply.PhoneNumber);
     }
 }

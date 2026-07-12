@@ -2,6 +2,7 @@ using AtlasBank.Grpc;
 using AtlasBank.TransactionService.Data;
 using AtlasBank.TransactionService.Data.Repositories;
 using AtlasBank.TransactionService.Features.Transactions;
+using AtlasBank.TransactionService.Grpc;
 using AtlasBank.TransactionService.Infrastructure;
 using FluentValidation;
 using MassTransit;
@@ -45,6 +46,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddGrpc();
 
 var app = builder.Build();
 
@@ -59,6 +61,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapTransactionEndpoints();
+app.MapGrpcService<TransactionGrpcServer>();
 
 app.Run();
 

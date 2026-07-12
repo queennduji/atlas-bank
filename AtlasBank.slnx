@@ -19,6 +19,9 @@
   <Folder Name="/src/Services/NotificationService/">
     <Project Path="src/Services/NotificationService/AtlasBank.NotificationService/AtlasBank.NotificationService.csproj" />
   </Folder>
+  <Folder Name="/src/Services/StatementService/">
+    <Project Path="src/Services/StatementService/AtlasBank.StatementService/AtlasBank.StatementService.csproj" />
+  </Folder>
   <Folder Name="/src/Services/TransactionService/">
     <Project Path="src/Services/TransactionService/AtlasBank.TransactionService/AtlasBank.TransactionService.csproj" />
   </Folder>
@@ -38,6 +41,9 @@
   </Folder>
   <Folder Name="/tests/NotificationService/">
     <Project Path="tests/NotificationService/AtlasBank.NotificationService.IntegrationTests/AtlasBank.NotificationService.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/StatementService/">
+    <Project Path="tests/StatementService/AtlasBank.StatementService.IntegrationTests/AtlasBank.StatementService.IntegrationTests.csproj" />
   </Folder>
   <Folder Name="/tests/TransactionService/">
     <Project Path="tests/TransactionService/AtlasBank.TransactionService.IntegrationTests/AtlasBank.TransactionService.IntegrationTests.csproj" />

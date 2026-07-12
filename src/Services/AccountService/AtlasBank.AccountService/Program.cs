@@ -4,6 +4,7 @@ using AtlasBank.AccountService.Features.Accounts;
 using AtlasBank.AccountService.Features.Internal;
 using AtlasBank.AccountService.Grpc;
 using AtlasBank.AccountService.Infrastructure;
+using AtlasBank.Grpc;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +17,9 @@ builder.Services.AddDbContext<AccountDbContext>(options =>
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAccountValidator>();
 
-builder.Services.AddHttpClient<ICustomerServiceClient, CustomerServiceClient>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["CustomerService:BaseUrl"]!);
-});
+builder.Services.AddGrpcClient<CustomerGrpcService.CustomerGrpcServiceClient>(o =>
+    o.Address = new Uri(builder.Configuration["CustomerService:GrpcUrl"]!));
+builder.Services.AddScoped<ICustomerServiceClient, CustomerServiceClient>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -45,7 +45,7 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGrpcService<AccountGrpcService>();
+app.MapGrpcService<AtlasBank.AccountService.Grpc.AccountGrpcService>();
 app.MapAccountEndpoints();
 app.MapInternalAccountEndpoints();
 
