@@ -1,10 +1,10 @@
-using System.Net;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using AtlasBank.TransactionService.Domain.Enums;
 using AtlasBank.TransactionService.Features.Transactions;
 using AtlasBank.TransactionService.IntegrationTests.Infrastructure;
 using FluentAssertions;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace AtlasBank.TransactionService.IntegrationTests;
 
@@ -22,7 +22,7 @@ public class TransactionTests : IClassFixture<TransactionServiceFactory>
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
     }
 
-    // ─── Deposit ───────────────────────────────────────────────────────────────
+    // Deposit 
 
     [Fact]
     public async Task Deposit_ValidRequest_Returns201WithCompletedTransaction()
@@ -82,7 +82,7 @@ public class TransactionTests : IClassFixture<TransactionServiceFactory>
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    // ─── Withdraw ──────────────────────────────────────────────────────────────
+    // Withdraw 
 
     [Fact]
     public async Task Withdraw_ValidRequest_Returns201WithCompletedTransaction()
@@ -128,7 +128,7 @@ public class TransactionTests : IClassFixture<TransactionServiceFactory>
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-    // ─── Transfer ──────────────────────────────────────────────────────────────
+    // Transfer
 
     [Fact]
     public async Task Transfer_ValidRequest_Returns201WithCompletedTransaction()
@@ -174,7 +174,7 @@ public class TransactionTests : IClassFixture<TransactionServiceFactory>
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    // ─── GetById ───────────────────────────────────────────────────────────────
+    // GetById 
 
     [Fact]
     public async Task GetById_ExistingTransaction_Returns200()
@@ -198,7 +198,7 @@ public class TransactionTests : IClassFixture<TransactionServiceFactory>
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-    // ─── GetByAccount ──────────────────────────────────────────────────────────
+    // GetByAccount 
 
     [Fact]
     public async Task GetByAccount_ReturnsTransactionsForAccount()

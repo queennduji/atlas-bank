@@ -28,6 +28,12 @@ builder.Services.AddValidatorsFromAssemblyContaining<IssueCardValidator>();
 
 builder.Services.AddMassTransit(x =>
 {
+    x.AddEntityFrameworkOutbox<CardDbContext>(o =>
+    {
+        o.UseSqlServer();
+        o.QueryDelay = TimeSpan.FromSeconds(10);
+    });
+
     x.UsingRabbitMq((ctx, cfg) =>
     {
         cfg.Host(builder.Configuration["RabbitMQ:Host"], builder.Configuration["RabbitMQ:VirtualHost"], h =>
@@ -35,6 +41,8 @@ builder.Services.AddMassTransit(x =>
             h.Username(builder.Configuration["RabbitMQ:Username"]!);
             h.Password(builder.Configuration["RabbitMQ:Password"]!);
         });
+        cfg.UseMessageRetry(r => r.Intervals(500, 1000, 2000));
+        cfg.ConfigureEndpoints(ctx);
     });
 });
 

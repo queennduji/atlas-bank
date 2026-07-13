@@ -1,4 +1,5 @@
 using AtlasBank.CardService.Domain.Entities;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace AtlasBank.CardService.Data;
@@ -20,5 +21,9 @@ public class CardDbContext(DbContextOptions<CardDbContext> options) : DbContext(
             e.HasIndex(c => c.CustomerId);
             e.HasIndex(c => c.CardNumber).IsUnique();
         });
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }
