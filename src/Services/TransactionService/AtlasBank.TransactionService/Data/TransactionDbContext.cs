@@ -1,4 +1,5 @@
 using AtlasBank.TransactionService.Domain.Entities;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace AtlasBank.TransactionService.Data;
@@ -20,5 +21,9 @@ public class TransactionDbContext(DbContextOptions<TransactionDbContext> options
             t.HasIndex(x => x.AccountId);
             t.HasIndex(x => x.Reference).IsUnique();
         });
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }
