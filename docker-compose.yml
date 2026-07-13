@@ -2,6 +2,18 @@ version: '3.9'
 
 services:
 
+  seq:
+    image: datalust/seq:latest
+    environment:
+      ACCEPT_EULA: Y
+    ports:
+      - "5341:5341"
+      - "8081:80"
+    volumes:
+      - seq-data:/data
+    networks:
+      - atlas-net
+
   keycloak-db:
     image: postgres:16-alpine
     environment:
@@ -64,9 +76,11 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AtlasBank_Customers;User Id=sa;Password=Atlas@Bank123!;TrustServerCertificate=True
+      - Seq__ServerUrl=http://seq:5341
     depends_on:
       - sqlserver
       - keycloak
+      - seq
     networks:
       - atlas-net
 
@@ -96,9 +110,11 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AtlasBank_Accounts;User Id=sa;Password=Atlas@Bank123!;TrustServerCertificate=True
+      - Seq__ServerUrl=http://seq:5341
     depends_on:
       - sqlserver
       - keycloak
+      - seq
     networks:
       - atlas-net
 
@@ -114,10 +130,12 @@ services:
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=atlas
       - RabbitMQ__Password=atlas
+      - Seq__ServerUrl=http://seq:5341
     depends_on:
       - sqlserver
       - keycloak
       - rabbitmq
+      - seq
     networks:
       - atlas-net
 
@@ -133,10 +151,12 @@ services:
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=atlas
       - RabbitMQ__Password=atlas
+      - Seq__ServerUrl=http://seq:5341
     depends_on:
       - sqlserver
       - keycloak
       - rabbitmq
+      - seq
     networks:
       - atlas-net
 
@@ -151,15 +171,18 @@ services:
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=atlas
       - RabbitMQ__Password=atlas
+      - Seq__ServerUrl=http://seq:5341
     depends_on:
       - keycloak
       - rabbitmq
+      - seq
     networks:
       - atlas-net
 
 volumes:
   keycloak-db-data:
   sqlserver-data:
+  seq-data:
 
 networks:
   atlas-net:

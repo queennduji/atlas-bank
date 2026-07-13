@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddSerilogLogging();
+
 builder.Services.AddDbContext<CardDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -71,6 +73,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseGlobalExceptionHandling();
+app.UseRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -79,4 +82,6 @@ app.MapCardEndpoints();
 app.Run();
 
 public partial class Program { }
+
+
 

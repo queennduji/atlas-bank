@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddSerilogLogging();
+
 builder.Services.AddDbContext<CustomerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -44,6 +46,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseGlobalExceptionHandling();
+app.UseRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -53,3 +56,5 @@ app.MapGrpcService<CustomerGrpcServer>();
 app.Run();
 
 public partial class Program { }
+
+
