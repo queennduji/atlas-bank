@@ -3,6 +3,7 @@ using AtlasBank.CustomerService.Data.Repositories;
 using AtlasBank.CustomerService.Features.Customers;
 using AtlasBank.CustomerService.Grpc;
 using AtlasBank.CustomerService.Infrastructure;
+using AtlasBank.Shared.Middleware;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 builder.Services.AddGrpc();
+builder.Services.AddGlobalExceptionHandling();
 
 var app = builder.Build();
 
@@ -41,6 +43,7 @@ if (app.Environment.IsDevelopment())
     db.Database.Migrate();
 }
 
+app.UseGlobalExceptionHandling();
 app.UseAuthentication();
 app.UseAuthorization();
 
