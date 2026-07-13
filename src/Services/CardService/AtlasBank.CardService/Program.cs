@@ -72,6 +72,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+app.UseCorrelationId();
 app.UseGlobalExceptionHandling();
 app.UseRequestLogging();
 app.UseAuthentication();
@@ -82,6 +83,7 @@ app.MapCardEndpoints();
 app.Run();
 
 public partial class Program { }
+
 
 
 

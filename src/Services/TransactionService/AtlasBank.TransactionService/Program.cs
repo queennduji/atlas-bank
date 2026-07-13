@@ -68,6 +68,7 @@ if (app.Environment.IsDevelopment())
     db.Database.Migrate();
 }
 
+app.UseCorrelationId();
 app.UseGlobalExceptionHandling();
 app.UseRequestLogging();
 app.UseAuthentication();
@@ -79,6 +80,7 @@ app.MapGrpcService<TransactionGrpcServer>();
 app.Run();
 
 public partial class Program { }
+
 
 
 
