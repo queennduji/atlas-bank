@@ -1,4 +1,5 @@
 using AtlasBank.Grpc;
+using AtlasBank.Shared.Middleware;
 using AtlasBank.TransactionService.Data;
 using AtlasBank.TransactionService.Data.Repositories;
 using AtlasBank.TransactionService.Features.Transactions;
@@ -53,6 +54,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddGlobalExceptionHandling();
 builder.Services.AddGrpc();
 
 var app = builder.Build();
@@ -64,6 +66,7 @@ if (app.Environment.IsDevelopment())
     db.Database.Migrate();
 }
 
+app.UseGlobalExceptionHandling();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -73,3 +76,4 @@ app.MapGrpcService<TransactionGrpcServer>();
 app.Run();
 
 public partial class Program { }
+

@@ -1,4 +1,5 @@
 using AtlasBank.Grpc;
+using AtlasBank.Shared.Middleware;
 using AtlasBank.StatementService.Data;
 using AtlasBank.StatementService.Data.Repositories;
 using AtlasBank.StatementService.Features.Statements;
@@ -41,6 +42,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.MapInboundClaims = false;
     });
 builder.Services.AddAuthorization();
+builder.Services.AddGlobalExceptionHandling();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -53,6 +55,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+app.UseGlobalExceptionHandling();
 app.UseAuthentication();
 app.UseAuthorization();
 

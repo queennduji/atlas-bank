@@ -1,3 +1,4 @@
+using AtlasBank.Shared.Middleware;
 using System.Text.Json.Serialization;
 using AtlasBank.CardService.Data;
 using AtlasBank.CardService.Data.Repositories;
@@ -56,6 +57,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddGlobalExceptionHandling();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -68,6 +70,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+app.UseGlobalExceptionHandling();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -76,3 +79,4 @@ app.MapCardEndpoints();
 app.Run();
 
 public partial class Program { }
+
