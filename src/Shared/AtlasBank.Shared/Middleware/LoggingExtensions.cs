@@ -22,4 +22,10 @@ public static class LoggingExtensions
         app.UseSerilogRequestLogging();
         return app;
     }
+
+    public static IApplicationBuilder UseCorrelationId(this IApplicationBuilder app)
+    {
+        app.UseMiddleware<CorrelationIdMiddleware>();
+        return app;
+    }
 }

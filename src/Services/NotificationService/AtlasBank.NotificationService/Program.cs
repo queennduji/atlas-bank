@@ -76,6 +76,7 @@ if (app.Environment.IsDevelopment())
     db.Database.Migrate();
 }
 
+app.UseCorrelationId();
 app.UseGlobalExceptionHandling();
 app.UseRequestLogging();
 app.UseAuthentication();
@@ -86,6 +87,7 @@ app.MapNotificationEndpoints();
 app.Run();
 
 public partial class Program { }
+
 
 
 

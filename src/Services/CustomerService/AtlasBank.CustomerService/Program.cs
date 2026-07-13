@@ -45,6 +45,7 @@ if (app.Environment.IsDevelopment())
     db.Database.Migrate();
 }
 
+app.UseCorrelationId();
 app.UseGlobalExceptionHandling();
 app.UseRequestLogging();
 app.UseAuthentication();
@@ -56,5 +57,6 @@ app.MapGrpcService<CustomerGrpcServer>();
 app.Run();
 
 public partial class Program { }
+
 
 
