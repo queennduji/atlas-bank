@@ -1,8 +1,8 @@
 using AtlasBank.NotificationService.Data;
 using AtlasBank.NotificationService.Data.Repositories;
 using AtlasBank.NotificationService.Domain.Enums;
-using AtlasBank.NotificationService.Messaging.Consumers;
 using AtlasBank.NotificationService.IntegrationTests.Infrastructure;
+using AtlasBank.NotificationService.Messaging.Consumers;
 using AtlasBank.Shared.Messaging.Events;
 using FluentAssertions;
 using MassTransit;
@@ -86,7 +86,7 @@ public class ConsumerTests : IAsyncLifetime
         notifications.Should().AllSatisfy(n => n.RelatedTransactionId.Should().Be(evt.TransactionId));
     }
 
-    // ─── Withdrawal ────────────────────────────────────────────────────────────
+    // Withdrawal
 
     [Fact]
     public async Task Withdrawal_SendsAllChannels_MessageMentionsWithdrawal()
@@ -102,7 +102,7 @@ public class ConsumerTests : IAsyncLifetime
         sms.Sent[0].Message.Should().Contain("withdrawn");
     }
 
-    // ─── Transfer ──────────────────────────────────────────────────────────────
+    // Transfer
 
     [Fact]
     public async Task Transfer_SendsAllChannels_MessageMentionsTransfer()
@@ -118,7 +118,7 @@ public class ConsumerTests : IAsyncLifetime
         sms.Sent[0].Message.Should().Contain("transferred");
     }
 
-    // ─── No device token ───────────────────────────────────────────────────────
+    // No device token
 
     [Fact]
     public async Task NoDeviceToken_SkipsPush_CreatesOnlyTwoNotifications()
@@ -150,7 +150,7 @@ public class ConsumerTests : IAsyncLifetime
         notifications.Should().HaveCount(2);
     }
 
-    // ─── Account not found ─────────────────────────────────────────────────────
+    // Account not found
 
     [Fact]
     public async Task AccountNotFound_NoNotificationsSent()
@@ -167,7 +167,7 @@ public class ConsumerTests : IAsyncLifetime
         push.Sent.Should().BeEmpty();
     }
 
-    // ─── Customer not found ────────────────────────────────────────────────────
+    // Customer not found
 
     [Fact]
     public async Task CustomerNotFound_NoNotificationsSent()
@@ -198,7 +198,7 @@ public class ConsumerTests : IAsyncLifetime
     }
 }
 
-// ─── Helper fakes scoped to these tests ────────────────────────────────────────
+// Helper fakes scoped to these tests
 
 file class FakeCustomerServiceClientNoToken : AtlasBank.NotificationService.Infrastructure.ICustomerServiceClient
 {
