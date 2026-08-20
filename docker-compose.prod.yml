@@ -1,10 +1,11 @@
-# Production deployment (Oracle Cloud VM). Only Caddy is published to the host —
+# Production deployment (Oracle Cloud VM). Only nginx is published to the host —
 # everything else (Postgres, RabbitMQ, Seq, Keycloak, every service) is reachable
-# solely over the internal Docker network. Caddy terminates HTTPS for the three
+# solely over the internal Docker network. nginx terminates HTTPS for the three
 # public domains and reverse-proxies to the frontend, gateway, and Keycloak.
 #
 # Run with: docker compose -f docker-compose.prod.yml up -d --build
 # Requires a `.env` file alongside this one — see .env.production.example.
+# First-time cert setup: bash nginx/init-letsencrypt.sh (see that file).
 #
 # Note: Keycloak still runs in `start-dev` mode here, same as local dev. A fully
 # hardened production Keycloak deployment would use `start` with its stricter
@@ -13,15 +14,23 @@
 
 services:
 
-  caddy:
-    image: caddy:2-alpine
+  # nginx replaces Caddy as the TLS-terminating reverse proxy. Caddy's Go TLS
+  # stack was found to throw a fatal internal_error on a specific real-world
+  # ClientHello shape sent by modern Chrome/Edge — reproduced via packet
+  # capture and byte-exact replay against this server, confirmed across two
+  # Caddy versions and even a bare-minimum Caddy config with no custom
+  # Caddyfile. nginx terminates TLS via OpenSSL instead, which isn't exposed
+  # to that bug class. See nginx/nginx.conf and nginx/init-letsencrypt.sh
+  # (one-time cert bootstrap; certbot below handles ongoing renewal).
+  nginx:
+    image: nginx:alpine
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy-data:/data
-      - caddy-config:/config
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot-conf:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
     depends_on:
       frontend:
         condition: service_started
@@ -31,6 +40,13 @@ services:
         condition: service_started
     networks:
       - atlas-net
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot-conf:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
   seq:
     # Pinned — Seq's `latest` tag has broken past deployments by shipping a
@@ -399,8 +415,8 @@ volumes:
   keycloak-db-data:
   postgres-data:
   seq-data:
-  caddy-data:
-  caddy-config:
+  certbot-conf:
+  certbot-www:
 
 networks:
   atlas-net:
