@@ -43,6 +43,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddGrpc();
 builder.Services.AddGlobalExceptionHandling();
 
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<CustomerDbContext>();
+
 var app = builder.Build();
 
 {
@@ -58,6 +61,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapCustomerEndpoints();
+app.MapHealthChecks("/health");
 app.MapGrpcService<CustomerGrpcServer>();
 
 app.Run();

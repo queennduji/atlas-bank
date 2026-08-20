@@ -44,6 +44,12 @@ builder.Services.AddAuthorization();
 builder.Services.AddGrpc();
 builder.Services.AddGlobalExceptionHandling();
 
+// Checks real DB connectivity, not just "the process is alive" — a plain liveness
+// check would have reported this service as fine even while its database was
+// silently never migrated (the bug this replaces the risk of hitting again).
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AccountDbContext>();
+
 var app = builder.Build();
 
 {
@@ -61,6 +67,7 @@ app.UseAuthorization();
 app.MapGrpcService<AtlasBank.AccountService.Grpc.AccountGrpcService>();
 app.MapAccountEndpoints();
 app.MapInternalAccountEndpoints();
+app.MapHealthChecks("/health");
 
 app.Run();
 
