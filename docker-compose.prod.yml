@@ -1,0 +1,341 @@
+# Production deployment (Oracle Cloud VM). Only Caddy is published to the host —
+# everything else (Postgres, RabbitMQ, Seq, Keycloak, every service) is reachable
+# solely over the internal Docker network. Caddy terminates HTTPS for the three
+# public domains and reverse-proxies to the frontend, gateway, and Keycloak.
+#
+# Run with: docker compose -f docker-compose.prod.yml up -d --build
+# Requires a `.env` file alongside this one — see .env.production.example.
+#
+# Note: Keycloak still runs in `start-dev` mode here, same as local dev. A fully
+# hardened production Keycloak deployment would use `start` with its stricter
+# defaults — a reasonable follow-up, not done here to keep this deployment close
+# to what's already been tested end-to-end.
+
+services:
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - frontend
+      - api-gateway
+      - keycloak
+    networks:
+      - atlas-net
+
+  seq:
+    image: datalust/seq:latest
+    environment:
+      ACCEPT_EULA: Y
+    volumes:
+      - seq-data:/data
+    networks:
+      - atlas-net
+
+  keycloak-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    networks:
+      - atlas-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      # Fixed hostname so every token/discovery document reports the real public
+      # domain as issuer, regardless of whether it was reached via Caddy (browser)
+      # or the internal Docker network (backend services fetching metadata).
+      KC_HOSTNAME: auth.atlasbank.dev
+      KC_HOSTNAME_STRICT_HTTPS: "true"
+      # Caddy terminates TLS and forwards plain HTTP internally — this tells
+      # Keycloak to trust Caddy's X-Forwarded-* headers so it still reconstructs
+      # URLs as https://auth.atlasbank.dev instead of thinking it's plain HTTP.
+      KC_PROXY: edge
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/themes/atlas-bank:/opt/keycloak/themes/atlas-bank
+    depends_on:
+      - keycloak-db
+    networks:
+      - atlas-net
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - atlas-net
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: atlas
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    networks:
+      - atlas-net
+
+  customer-service:
+    build:
+      context: .
+      dockerfile: src/Services/CustomerService/AtlasBank.CustomerService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Customers;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Keycloak__BaseUrl=http://keycloak:8080
+      - Keycloak__AdminUsername=admin
+      - Keycloak__AdminPassword=${KEYCLOAK_ADMIN_PASSWORD}
+      - Kestrel__Endpoints__Http__Url=http://+:8080
+      - Kestrel__Endpoints__Grpc__Url=http://+:8081
+      - Seq__ServerUrl=http://seq:5341
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      seq:
+        condition: service_started
+    networks:
+      - atlas-net
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: src/ApiGateway/AtlasBank.ApiGateway/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - ReverseProxy__Clusters__customers-cluster__Destinations__primary__Address=http://customer-service:8080
+      - ReverseProxy__Clusters__accounts-cluster__Destinations__primary__Address=http://account-service:8080
+      - ReverseProxy__Clusters__transactions-cluster__Destinations__primary__Address=http://transaction-service:8080
+      - ReverseProxy__Clusters__ledger-cluster__Destinations__primary__Address=http://ledger-service:8080
+      # Adds the production frontend origin on top of the localhost ones already
+      # in appsettings.json (harmless to keep — nothing in production runs on
+      # the server's own localhost that would use them).
+      - Cors__AllowedOrigins__3=https://atlasbank.dev
+    depends_on:
+      - keycloak
+      - account-service
+      - transaction-service
+      - ledger-service
+      - notification-service
+      - card-service
+      - statement-service
+    networks:
+      - atlas-net
+
+  frontend:
+    build:
+      context: ./frontend
+      # Baked into the JS bundle at build time — must be the real public URLs.
+      args:
+        VITE_GATEWAY_URL: https://api.atlasbank.dev
+        VITE_KEYCLOAK_URL: https://auth.atlasbank.dev
+        VITE_KEYCLOAK_REALM: atlas-bank
+        VITE_KEYCLOAK_CLIENT_ID: atlas-bank-app
+    depends_on:
+      - api-gateway
+    networks:
+      - atlas-net
+
+  account-service:
+    build:
+      context: .
+      dockerfile: src/Services/AccountService/AtlasBank.AccountService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Accounts;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - CustomerService__GrpcUrl=http://customer-service:8081
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Kestrel__Endpoints__Http__Url=http://+:8080
+      - Kestrel__Endpoints__Grpc__Url=http://+:8081
+      - Seq__ServerUrl=http://seq:5341
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      seq:
+        condition: service_started
+      customer-service:
+        condition: service_started
+    networks:
+      - atlas-net
+
+  transaction-service:
+    build:
+      context: .
+      dockerfile: src/Services/TransactionService/AtlasBank.TransactionService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Transactions;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - AccountService__GrpcUrl=http://account-service:8081
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Kestrel__Endpoints__Http__Url=http://+:8080
+      - Kestrel__Endpoints__Grpc__Url=http://+:8081
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=atlas
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - Seq__ServerUrl=http://seq:5341
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      seq:
+        condition: service_started
+      account-service:
+        condition: service_started
+    networks:
+      - atlas-net
+
+  ledger-service:
+    build:
+      context: .
+      dockerfile: src/Services/LedgerService/AtlasBank.LedgerService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Ledger;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=atlas
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - Seq__ServerUrl=http://seq:5341
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      seq:
+        condition: service_started
+    networks:
+      - atlas-net
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: src/Services/NotificationService/AtlasBank.NotificationService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Notifications;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - AccountService__GrpcUrl=http://account-service:8081
+      - CustomerService__GrpcUrl=http://customer-service:8081
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=atlas
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - Seq__ServerUrl=http://seq:5341
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      seq:
+        condition: service_started
+      account-service:
+        condition: service_started
+      customer-service:
+        condition: service_started
+    networks:
+      - atlas-net
+
+  card-service:
+    build:
+      context: .
+      dockerfile: src/Services/CardService/AtlasBank.CardService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Cards;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - AccountService__GrpcUrl=http://account-service:8081
+      - CustomerService__GrpcUrl=http://customer-service:8081
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__Username=atlas
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - Seq__ServerUrl=http://seq:5341
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      seq:
+        condition: service_started
+      account-service:
+        condition: service_started
+      customer-service:
+        condition: service_started
+    networks:
+      - atlas-net
+
+  statement-service:
+    build:
+      context: .
+      dockerfile: src/Services/StatementService/AtlasBank.StatementService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Statements;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - AccountService__GrpcUrl=http://account-service:8081
+      - CustomerService__GrpcUrl=http://customer-service:8081
+      - TransactionService__GrpcUrl=http://transaction-service:8081
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Seq__ServerUrl=http://seq:5341
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      seq:
+        condition: service_started
+      account-service:
+        condition: service_started
+      customer-service:
+        condition: service_started
+      transaction-service:
+        condition: service_started
+    networks:
+      - atlas-net
+
+volumes:
+  keycloak-db-data:
+  postgres-data:
+  seq-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  atlas-net:
+    driver: bridge

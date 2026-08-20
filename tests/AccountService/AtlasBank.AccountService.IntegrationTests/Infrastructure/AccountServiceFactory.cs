@@ -8,14 +8,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Testcontainers.MsSql;
+using Testcontainers.PostgreSql;
 
 namespace AtlasBank.AccountService.IntegrationTests.Infrastructure;
 
 public class AccountServiceFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder()
-        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+    private readonly PostgreSqlContainer _postgresContainer = new PostgreSqlBuilder()
+        .WithImage("postgres:16-alpine")
         .Build();
 
     public Guid DefaultCustomerId { get; } = Guid.NewGuid();
@@ -23,12 +23,12 @@ public class AccountServiceFactory : WebApplicationFactory<Program>, IAsyncLifet
 
     public async Task InitializeAsync()
     {
-        await _sqlContainer.StartAsync();
+        await _postgresContainer.StartAsync();
     }
 
     public new async Task DisposeAsync()
     {
-        await _sqlContainer.DisposeAsync();
+        await _postgresContainer.DisposeAsync();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -37,7 +37,7 @@ public class AccountServiceFactory : WebApplicationFactory<Program>, IAsyncLifet
         {
             services.RemoveAll<DbContextOptions<AccountDbContext>>();
             services.AddDbContext<AccountDbContext>(options =>
-                options.UseSqlServer(_sqlContainer.GetConnectionString()));
+                options.UseNpgsql(_postgresContainer.GetConnectionString()));
 
             // Replace CustomerServiceClient with a fake that returns test customer
             services.RemoveAll<ICustomerServiceClient>();

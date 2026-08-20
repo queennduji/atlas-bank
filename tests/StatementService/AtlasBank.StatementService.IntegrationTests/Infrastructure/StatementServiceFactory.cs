@@ -9,23 +9,23 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
-using Testcontainers.MsSql;
+using Testcontainers.PostgreSql;
 
 namespace AtlasBank.StatementService.IntegrationTests.Infrastructure;
 
 public class StatementServiceFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder()
-        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+    private readonly PostgreSqlContainer _postgresContainer = new PostgreSqlBuilder()
+        .WithImage("postgres:16-alpine")
         .Build();
 
     public FakeAccountServiceClient FakeAccountClient { get; } = new();
     public FakeCustomerServiceClient FakeCustomerClient { get; } = new();
     public FakeTransactionServiceClient FakeTransactionClient { get; } = new();
 
-    public async Task InitializeAsync() => await _sqlContainer.StartAsync();
+    public async Task InitializeAsync() => await _postgresContainer.StartAsync();
 
-    public new async Task DisposeAsync() => await _sqlContainer.DisposeAsync();
+    public new async Task DisposeAsync() => await _postgresContainer.DisposeAsync();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -34,7 +34,7 @@ public class StatementServiceFactory : WebApplicationFactory<Program>, IAsyncLif
             // Replace DB
             services.RemoveAll<DbContextOptions<StatementDbContext>>();
             services.AddDbContext<StatementDbContext>(options =>
-                options.UseSqlServer(_sqlContainer.GetConnectionString()));
+                options.UseNpgsql(_postgresContainer.GetConnectionString()));
 
             // Replace AccountService gRPC client + interface
             services.RemoveAll<AccountGrpcService.AccountGrpcServiceClient>();

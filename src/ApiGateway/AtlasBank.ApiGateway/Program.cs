@@ -40,6 +40,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.Authority = builder.Configuration["Keycloak:Authority"];
         options.Audience = builder.Configuration["Keycloak:Audience"];
         options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+        // Lets the OIDC discovery/JWKS fetch happen over a different address than the
+        // token issuer (e.g. Keycloak's Docker-network hostname vs. the browser-facing
+        // host:port baked into the "iss" claim). Falls back to Authority when unset.
+        var metadataAddress = builder.Configuration["Keycloak:MetadataAddress"];
+        if (!string.IsNullOrEmpty(metadataAddress)) options.MetadataAddress = metadataAddress;
     });
 
 builder.Services.AddAuthorization();

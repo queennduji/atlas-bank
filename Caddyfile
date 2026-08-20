@@ -1,0 +1,18 @@
+# Reverse proxy for the three public domains. Caddy handles HTTPS automatically
+# (Let's Encrypt) for each — no manual certificate management needed.
+#
+# Everything behind these three entries stays on the internal Docker network;
+# nothing else (Postgres, RabbitMQ, Seq, the individual services) is published
+# to the host at all in production — only Caddy is.
+
+atlasbank.dev {
+    reverse_proxy frontend:80
+}
+
+api.atlasbank.dev {
+    reverse_proxy api-gateway:8080
+}
+
+auth.atlasbank.dev {
+    reverse_proxy keycloak:8080
+}

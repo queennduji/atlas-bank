@@ -1,10 +1,11 @@
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
 
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY ["src/Shared/AtlasBank.Shared/AtlasBank.Shared.csproj", "src/Shared/AtlasBank.Shared/"]
+COPY ["src/Shared/AtlasBank.Grpc/AtlasBank.Grpc.csproj", "src/Shared/AtlasBank.Grpc/"]
 COPY ["src/Services/CustomerService/AtlasBank.CustomerService/AtlasBank.CustomerService.csproj", "src/Services/CustomerService/AtlasBank.CustomerService/"]
 RUN dotnet restore "src/Services/CustomerService/AtlasBank.CustomerService/AtlasBank.CustomerService.csproj"
 COPY . .
