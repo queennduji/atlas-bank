@@ -106,7 +106,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Customers;Username=postgres;Password=${POSTGRES_PASSWORD}
-      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Keycloak__MetadataAddress=https://auth.atlasbank.dev/realms/atlas-bank/.well-known/openid-configuration
       - Keycloak__BaseUrl=http://keycloak:8080
       - Keycloak__AdminUsername=admin
       - Keycloak__AdminPassword=${KEYCLOAK_ADMIN_PASSWORD}
@@ -129,7 +129,7 @@ services:
       dockerfile: src/ApiGateway/AtlasBank.ApiGateway/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Keycloak__MetadataAddress=https://auth.atlasbank.dev/realms/atlas-bank/.well-known/openid-configuration
       - ReverseProxy__Clusters__customers-cluster__Destinations__primary__Address=http://customer-service:8080
       - ReverseProxy__Clusters__accounts-cluster__Destinations__primary__Address=http://account-service:8080
       - ReverseProxy__Clusters__transactions-cluster__Destinations__primary__Address=http://transaction-service:8080
@@ -171,7 +171,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Accounts;Username=postgres;Password=${POSTGRES_PASSWORD}
       - CustomerService__GrpcUrl=http://customer-service:8081
-      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Keycloak__MetadataAddress=https://auth.atlasbank.dev/realms/atlas-bank/.well-known/openid-configuration
       - Kestrel__Endpoints__Http__Url=http://+:8080
       - Kestrel__Endpoints__Grpc__Url=http://+:8081
       - Seq__ServerUrl=http://seq:5341
@@ -195,7 +195,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Transactions;Username=postgres;Password=${POSTGRES_PASSWORD}
       - AccountService__GrpcUrl=http://account-service:8081
-      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Keycloak__MetadataAddress=https://auth.atlasbank.dev/realms/atlas-bank/.well-known/openid-configuration
       - Kestrel__Endpoints__Http__Url=http://+:8080
       - Kestrel__Endpoints__Grpc__Url=http://+:8081
       - RabbitMQ__Host=rabbitmq
@@ -223,7 +223,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Ledger;Username=postgres;Password=${POSTGRES_PASSWORD}
-      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Keycloak__MetadataAddress=https://auth.atlasbank.dev/realms/atlas-bank/.well-known/openid-configuration
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=atlas
       - RabbitMQ__Password=${RABBITMQ_PASSWORD}
@@ -249,7 +249,7 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Notifications;Username=postgres;Password=${POSTGRES_PASSWORD}
       - AccountService__GrpcUrl=http://account-service:8081
       - CustomerService__GrpcUrl=http://customer-service:8081
-      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Keycloak__MetadataAddress=https://auth.atlasbank.dev/realms/atlas-bank/.well-known/openid-configuration
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=atlas
       - RabbitMQ__Password=${RABBITMQ_PASSWORD}
@@ -279,7 +279,7 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Cards;Username=postgres;Password=${POSTGRES_PASSWORD}
       - AccountService__GrpcUrl=http://account-service:8081
       - CustomerService__GrpcUrl=http://customer-service:8081
-      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Keycloak__MetadataAddress=https://auth.atlasbank.dev/realms/atlas-bank/.well-known/openid-configuration
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__VirtualHost=/
       - RabbitMQ__Username=atlas
@@ -311,7 +311,7 @@ services:
       - AccountService__GrpcUrl=http://account-service:8081
       - CustomerService__GrpcUrl=http://customer-service:8081
       - TransactionService__GrpcUrl=http://transaction-service:8081
-      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Keycloak__MetadataAddress=https://auth.atlasbank.dev/realms/atlas-bank/.well-known/openid-configuration
       - Seq__ServerUrl=http://seq:5341
     depends_on:
       postgres:
