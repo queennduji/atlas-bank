@@ -15,7 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddSerilogLogging();
 
 builder.Services.AddDbContext<NotificationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        npgsql => npgsql.EnableRetryOnFailure()));
 
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
@@ -48,7 +50,16 @@ builder.Services.AddMassTransit(x =>
             h.Username(builder.Configuration["RabbitMQ:Username"]!);
             h.Password(builder.Configuration["RabbitMQ:Password"]!);
         });
-        cfg.ConfigureEndpoints(ctx);
+        // Explicit, service-scoped endpoint name — MassTransit's default naming
+        // convention derives the queue name from the consumer type's short name, and
+        // another service's consumer for the same event happening to share that name
+        // (e.g. every service calling its consumer "TransactionCompletedConsumer") would
+        // otherwise bind both services to the same queue, splitting deliveries between
+        // them instead of each service getting its own copy of every event.
+        cfg.ReceiveEndpoint("notification-service-transaction-completed", e =>
+        {
+            e.ConfigureConsumer<TransactionCompletedConsumer>(ctx);
+        });
     });
 });
 
@@ -59,6 +70,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.Audience = builder.Configuration["Keycloak:Audience"];
         options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
         options.MapInboundClaims = false;
+        // Lets the OIDC discovery/JWKS fetch happen over a different address than the
+        // token issuer (e.g. Keycloak's Docker-network hostname vs. the browser-facing
+        // host:port baked into the "iss" claim). Falls back to Authority when unset.
+        var metadataAddress = builder.Configuration["Keycloak:MetadataAddress"];
+        if (!string.IsNullOrEmpty(metadataAddress)) options.MetadataAddress = metadataAddress;
     });
 
 builder.Services.AddAuthorization();

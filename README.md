@@ -21,12 +21,18 @@ async domain events over RabbitMQ, database-per-service, and centralized structu
 
 ## Tech stack
 
-- **.NET 10** / ASP.NET Core, **EF Core** + SQL Server (one database per service)
+- **.NET 10** / ASP.NET Core, **EF Core** + PostgreSQL (one database per service)
 - **YARP** reverse proxy for the API Gateway, with JWT auth via **Keycloak** (OAuth2/OIDC) and per-IP rate limiting
 - **gRPC** for synchronous service-to-service calls, **RabbitMQ** for async domain events
 - **Serilog → Seq** for centralized structured logging
 - **Docker Compose** for local orchestration
-- **xUnit**, **FluentAssertions**, and **Testcontainers** (real SQL Server containers) for integration tests
+- **xUnit**, **FluentAssertions**, and **Testcontainers** (real PostgreSQL containers) for integration tests
+
+## Frontend
+
+A React + TypeScript client lives in [`frontend/`](frontend) — sign up, open accounts,
+move money, issue cards, and pull statements against the gateway. See
+[`frontend/README.md`](frontend/README.md) for setup.
 
 ## Getting started
 
@@ -36,10 +42,15 @@ cd atlas-bank
 docker-compose up --build
 ```
 
-This brings up Keycloak, SQL Server, RabbitMQ, Seq, the API Gateway, and the core services.
-The gateway is available at `http://localhost:5000`; Seq's UI at `http://localhost:8081`.
+This brings up everything — Keycloak, PostgreSQL, RabbitMQ, Seq, all seven services, the
+API Gateway, and the frontend. The frontend is at `http://localhost:3000`, the gateway at
+`http://localhost:5000`, Seq's UI at `http://localhost:8081`.
 
-Card Service and Statement Service are implemented but not yet wired into `docker-compose.yml`.
+> PostgreSQL replaced SQL Server so the whole stack can run on ARM (e.g. Oracle Cloud's
+> free-tier VMs) — SQL Server's Docker image is amd64-only.
+
+For active frontend development, run it outside Docker instead so you get hot reload —
+see [`frontend/README.md`](frontend/README.md).
 
 ## Testing
 
@@ -47,7 +58,7 @@ Card Service and Statement Service are implemented but not yet wired into `docke
 dotnet test
 ```
 
-Integration tests spin up real SQL Server containers via Testcontainers rather than mocking the database.
+Integration tests spin up real PostgreSQL containers via Testcontainers rather than mocking the database.
 
 ## License
 

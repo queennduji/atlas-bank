@@ -11,26 +11,26 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
-using Testcontainers.MsSql;
+using Testcontainers.PostgreSql;
 
 namespace AtlasBank.TransactionService.IntegrationTests.Infrastructure;
 
 public class TransactionServiceFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder()
-        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+    private readonly PostgreSqlContainer _postgresContainer = new PostgreSqlBuilder()
+        .WithImage("postgres:16-alpine")
         .Build();
 
     public FakeAccountServiceClient FakeAccountClient { get; } = new();
 
     public async Task InitializeAsync()
     {
-        await _sqlContainer.StartAsync();
+        await _postgresContainer.StartAsync();
     }
 
     public new async Task DisposeAsync()
     {
-        await _sqlContainer.DisposeAsync();
+        await _postgresContainer.DisposeAsync();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -40,7 +40,7 @@ public class TransactionServiceFactory : WebApplicationFactory<Program>, IAsyncL
             // Replace real DB
             services.RemoveAll<DbContextOptions<TransactionDbContext>>();
             services.AddDbContext<TransactionDbContext>(options =>
-                options.UseSqlServer(_sqlContainer.GetConnectionString()));
+                options.UseNpgsql(_postgresContainer.GetConnectionString()));
 
             // Replace gRPC client registration with fake HTTP client
             services.RemoveAll<AccountGrpcService.AccountGrpcServiceClient>();

@@ -39,6 +39,9 @@
   <Folder Name="/tests/CustomerService/">
     <Project Path="tests/CustomerService/AtlasBank.CustomerService.IntegrationTests/AtlasBank.CustomerService.IntegrationTests.csproj" />
   </Folder>
+  <Folder Name="/tests/LedgerService/">
+    <Project Path="tests/LedgerService/AtlasBank.LedgerService.IntegrationTests/AtlasBank.LedgerService.IntegrationTests.csproj" />
+  </Folder>
   <Folder Name="/tests/NotificationService/">
     <Project Path="tests/NotificationService/AtlasBank.NotificationService.IntegrationTests/AtlasBank.NotificationService.IntegrationTests.csproj" />
   </Folder>

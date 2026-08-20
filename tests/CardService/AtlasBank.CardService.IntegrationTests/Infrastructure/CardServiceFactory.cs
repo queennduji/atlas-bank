@@ -11,22 +11,22 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
-using Testcontainers.MsSql;
+using Testcontainers.PostgreSql;
 
 namespace AtlasBank.CardService.IntegrationTests.Infrastructure;
 
 public class CardServiceFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder()
-        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+    private readonly PostgreSqlContainer _postgresContainer = new PostgreSqlBuilder()
+        .WithImage("postgres:16-alpine")
         .Build();
 
     public FakeAccountServiceClient FakeAccountClient { get; } = new();
     public FakeCustomerServiceClient FakeCustomerClient { get; } = new();
 
-    public async Task InitializeAsync() => await _sqlContainer.StartAsync();
+    public async Task InitializeAsync() => await _postgresContainer.StartAsync();
 
-    public new async Task DisposeAsync() => await _sqlContainer.DisposeAsync();
+    public new async Task DisposeAsync() => await _postgresContainer.DisposeAsync();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -35,7 +35,7 @@ public class CardServiceFactory : WebApplicationFactory<Program>, IAsyncLifetime
             // Replace DB
             services.RemoveAll<DbContextOptions<CardDbContext>>();
             services.AddDbContext<CardDbContext>(options =>
-                options.UseSqlServer(_sqlContainer.GetConnectionString()));
+                options.UseNpgsql(_postgresContainer.GetConnectionString()));
 
             // Replace gRPC client + account service client
             services.RemoveAll<AccountGrpcService.AccountGrpcServiceClient>();

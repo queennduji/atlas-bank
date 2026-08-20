@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
 
   seq:
@@ -35,8 +33,18 @@ services:
       KC_DB_PASSWORD: keycloak
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+      # Without a fixed hostname, Keycloak reports whatever host:port the caller used to
+      # reach it as the token issuer — fine for the browser (localhost:8080) but wrong
+      # when backend services fetch OIDC metadata via the container hostname
+      # (keycloak:8080), which would make issuer validation fail. Pin it so every token
+      # and discovery document consistently claims http://localhost:8080, matching what
+      # the browser/frontend actually uses.
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: "8080"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/themes/atlas-bank:/opt/keycloak/themes/atlas-bank
     ports:
       - "8080:8080"
     depends_on:
@@ -44,15 +52,20 @@ services:
     networks:
       - atlas-net
 
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+  postgres:
+    image: postgres:16-alpine
     environment:
-      SA_PASSWORD: "Atlas@Bank123!"
-      ACCEPT_EULA: "Y"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "Atlas@Bank123!"
     ports:
-      - "1434:1433"
+      - "5433:5432"
     volumes:
-      - sqlserver-data:/var/opt/mssql
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - atlas-net
 
@@ -75,12 +88,24 @@ services:
       - "5005:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AtlasBank_Customers;User Id=sa;Password=Atlas@Bank123!;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Customers;Username=postgres;Password=Atlas@Bank123!
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Keycloak__BaseUrl=http://keycloak:8080
+      - Keycloak__AdminUsername=admin
+      - Keycloak__AdminPassword=admin
+      # appsettings.json binds Kestrel to specific localhost ports for local `dotnet run`
+      # dev — override both endpoints to bind on all interfaces so the container's
+      # published port (REST) and other services' gRPC calls (8081) actually work.
+      - Kestrel__Endpoints__Http__Url=http://+:8080
+      - Kestrel__Endpoints__Grpc__Url=http://+:8081
       - Seq__ServerUrl=http://seq:5341
     depends_on:
-      - sqlserver
-      - keycloak
-      - seq
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      seq:
+        condition: service_started
     networks:
       - atlas-net
 
@@ -92,12 +117,40 @@ services:
       - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      # appsettings.Development.json targets running services locally outside Docker
+      # (localhost + distinct ports per service) — override it back to the container
+      # hostnames appsettings.json already has for the Docker network.
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - ReverseProxy__Clusters__customers-cluster__Destinations__primary__Address=http://customer-service:8080
+      - ReverseProxy__Clusters__accounts-cluster__Destinations__primary__Address=http://account-service:8080
+      - ReverseProxy__Clusters__transactions-cluster__Destinations__primary__Address=http://transaction-service:8080
+      - ReverseProxy__Clusters__ledger-cluster__Destinations__primary__Address=http://ledger-service:8080
     depends_on:
       - keycloak
       - account-service
       - transaction-service
       - ledger-service
       - notification-service
+      - card-service
+      - statement-service
+    networks:
+      - atlas-net
+
+  frontend:
+    build:
+      context: ./frontend
+      # These become build-time constants baked into the JS bundle (Vite inlines
+      # import.meta.env at build, not runtime) — they must be URLs the *browser* can
+      # reach, i.e. the host-published ports below, not container hostnames.
+      args:
+        VITE_GATEWAY_URL: http://localhost:5000
+        VITE_KEYCLOAK_URL: http://localhost:8080
+        VITE_KEYCLOAK_REALM: atlas-bank
+        VITE_KEYCLOAK_CLIENT_ID: atlas-bank-app
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-gateway
     networks:
       - atlas-net
 
@@ -109,12 +162,21 @@ services:
       - "5001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AtlasBank_Accounts;User Id=sa;Password=Atlas@Bank123!;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Accounts;Username=postgres;Password=Atlas@Bank123!
+      - CustomerService__GrpcUrl=http://customer-service:8081
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Kestrel__Endpoints__Http__Url=http://+:8080
+      - Kestrel__Endpoints__Grpc__Url=http://+:8081
       - Seq__ServerUrl=http://seq:5341
     depends_on:
-      - sqlserver
-      - keycloak
-      - seq
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      seq:
+        condition: service_started
+      customer-service:
+        condition: service_started
     networks:
       - atlas-net
 
@@ -126,16 +188,26 @@ services:
       - "5002:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AtlasBank_Transactions;User Id=sa;Password=Atlas@Bank123!;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Transactions;Username=postgres;Password=Atlas@Bank123!
+      - AccountService__GrpcUrl=http://account-service:8081
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Kestrel__Endpoints__Http__Url=http://+:8080
+      - Kestrel__Endpoints__Grpc__Url=http://+:8081
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=atlas
       - RabbitMQ__Password=atlas
       - Seq__ServerUrl=http://seq:5341
     depends_on:
-      - sqlserver
-      - keycloak
-      - rabbitmq
-      - seq
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      seq:
+        condition: service_started
+      account-service:
+        condition: service_started
     networks:
       - atlas-net
 
@@ -147,16 +219,21 @@ services:
       - "5003:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AtlasBank_Ledger;User Id=sa;Password=Atlas@Bank123!;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Ledger;Username=postgres;Password=Atlas@Bank123!
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=atlas
       - RabbitMQ__Password=atlas
       - Seq__ServerUrl=http://seq:5341
     depends_on:
-      - sqlserver
-      - keycloak
-      - rabbitmq
-      - seq
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      seq:
+        condition: service_started
     networks:
       - atlas-net
 
@@ -168,20 +245,96 @@ services:
       - "5004:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Notifications;Username=postgres;Password=Atlas@Bank123!
+      - AccountService__GrpcUrl=http://account-service:8081
+      - CustomerService__GrpcUrl=http://customer-service:8081
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=atlas
       - RabbitMQ__Password=atlas
       - Seq__ServerUrl=http://seq:5341
     depends_on:
-      - keycloak
-      - rabbitmq
-      - seq
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      seq:
+        condition: service_started
+      account-service:
+        condition: service_started
+      customer-service:
+        condition: service_started
+    networks:
+      - atlas-net
+
+  card-service:
+    build:
+      context: .
+      dockerfile: src/Services/CardService/AtlasBank.CardService/Dockerfile
+    ports:
+      - "5006:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Cards;Username=postgres;Password=Atlas@Bank123!
+      - AccountService__GrpcUrl=http://account-service:8081
+      - CustomerService__GrpcUrl=http://customer-service:8081
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__Username=atlas
+      - RabbitMQ__Password=atlas
+      - Seq__ServerUrl=http://seq:5341
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      seq:
+        condition: service_started
+      account-service:
+        condition: service_started
+      customer-service:
+        condition: service_started
+    networks:
+      - atlas-net
+
+  statement-service:
+    build:
+      context: .
+      dockerfile: src/Services/StatementService/AtlasBank.StatementService/Dockerfile
+    ports:
+      - "5007:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Statements;Username=postgres;Password=Atlas@Bank123!
+      - AccountService__GrpcUrl=http://account-service:8081
+      - CustomerService__GrpcUrl=http://customer-service:8081
+      - TransactionService__GrpcUrl=http://transaction-service:8081
+      - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
+      - Seq__ServerUrl=http://seq:5341
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      seq:
+        condition: service_started
+      account-service:
+        condition: service_started
+      customer-service:
+        condition: service_started
+      transaction-service:
+        condition: service_started
     networks:
       - atlas-net
 
 volumes:
   keycloak-db-data:
-  sqlserver-data:
+  postgres-data:
   seq-data:
 
 networks:
