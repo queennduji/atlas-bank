@@ -9,7 +9,11 @@
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.31.1" />
     <PackageReference Include="Grpc.Core.Api" Version="2.80.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.72.0">
+    <!-- 2.72.0's bundled linux_arm64 protoc/grpc_csharp_plugin binaries segfault (exit
+         139) when compiling this project's .proto files under Docker's OverlayFS build
+         context on ARM64 (e.g. Oracle Cloud's Ampere A1) — reproducible even with a
+         single, non-concurrent build. Fixed in this later release. -->
+    <PackageReference Include="Grpc.Tools" Version="2.83.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
