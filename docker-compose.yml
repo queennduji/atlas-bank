@@ -1,7 +1,10 @@
 services:
 
   seq:
-    image: datalust/seq:latest
+    # Pinned — Seq's `latest` tag has broken past deployments by shipping a
+    # stricter first-run auth requirement with no warning. 2026.1 is the
+    # version this whole stack was actually built and tested against.
+    image: datalust/seq:2026.1
     environment:
       ACCEPT_EULA: Y
       # Newer Seq versions require an explicit auth decision on first run —
