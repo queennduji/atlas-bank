@@ -33,6 +33,11 @@ services:
     image: datalust/seq:latest
     environment:
       ACCEPT_EULA: Y
+      # Newer Seq versions require an explicit auth decision on first run. Seq
+      # isn't published to the host at all here (internal-only, reachable only
+      # from other containers on atlas-net), so requiring a login for an
+      # already network-isolated tool is unnecessary friction.
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "true"
     volumes:
       - seq-data:/data
     networks:

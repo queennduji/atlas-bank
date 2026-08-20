@@ -4,6 +4,9 @@ services:
     image: datalust/seq:latest
     environment:
       ACCEPT_EULA: Y
+      # Newer Seq versions require an explicit auth decision on first run —
+      # without it the container crash-loops. No auth needed for local dev.
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "true"
     ports:
       - "5341:5341"
       - "8081:80"
