@@ -107,8 +107,23 @@
         <#if realm.password>
             <div id="kc-registration-container">
                 <div id="kc-registration">
-                    <span>${msg("noAccount")} <a tabindex="6"
-                                                 href="${properties.frontendUrl}/register">${msg("doRegister")}</a></span>
+                    <#-- Derived client-side from the current hostname rather than a
+                         static theme property, since this same theme file is mounted
+                         in both local dev (keycloak on localhost:8080, app on
+                         localhost:3000 -- no fixed relationship between the two) and
+                         production (auth.atlasbank.dev -> atlasbank.dev), and a single
+                         hardcoded URL would break whichever environment it wasn't
+                         written for. -->
+                    <span>${msg("noAccount")} <a tabindex="6" id="register-link" href="#">${msg("doRegister")}</a></span>
+                    <script>
+                        (function () {
+                            var link = document.getElementById('register-link');
+                            var frontendOrigin = window.location.hostname === 'auth.atlasbank.dev'
+                                ? 'https://atlasbank.dev'
+                                : 'http://localhost:3000';
+                            link.href = frontendOrigin + '/register';
+                        })();
+                    </script>
                 </div>
             </div>
         </#if>
