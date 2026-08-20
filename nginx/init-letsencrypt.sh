@@ -15,7 +15,12 @@ DOMAIN="atlasbank.dev"
 SANS=(atlasbank.dev api.atlasbank.dev auth.atlasbank.dev)
 RSA_KEY_SIZE=4096
 
-if [ -d "./certbot-conf/live/$DOMAIN" ]; then
+# nginx/certbot use a named Docker volume (`certbot-conf`), not a host bind
+# mount — every step below must go through `docker compose run` against the
+# same `certbot` service so it lands in that same volume, not a stray local
+# directory.
+
+if $COMPOSE run --rm --entrypoint sh certbot -c "test -d /etc/letsencrypt/live/$DOMAIN" 2>/dev/null; then
   read -p "Existing certificate found for $DOMAIN. Replace it? (y/N) " decision
   if [ "$decision" != "y" ] && [ "$decision" != "Y" ]; then
     exit 0
@@ -23,20 +28,19 @@ if [ -d "./certbot-conf/live/$DOMAIN" ]; then
 fi
 
 echo "### Creating a throwaway self-signed certificate so nginx can start..."
-mkdir -p "./certbot-conf/live/$DOMAIN"
-docker run --rm \
-  -v "$(pwd)/certbot-conf:/etc/letsencrypt" \
-  --entrypoint openssl certbot/certbot \
-  req -x509 -nodes -newkey rsa:$RSA_KEY_SIZE -days 1 \
-    -keyout "/etc/letsencrypt/live/$DOMAIN/privkey.pem" \
-    -out "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" \
-    -subj "/CN=localhost"
+$COMPOSE run --rm --entrypoint sh certbot -c "\
+  mkdir -p /etc/letsencrypt/live/$DOMAIN && \
+  openssl req -x509 -nodes -newkey rsa:$RSA_KEY_SIZE -days 1 \
+    -keyout /etc/letsencrypt/live/$DOMAIN/privkey.pem \
+    -out /etc/letsencrypt/live/$DOMAIN/fullchain.pem \
+    -subj /CN=localhost"
 
 echo "### Starting nginx..."
 $COMPOSE up -d --force-recreate nginx
 
 echo "### Deleting throwaway certificate..."
-rm -rf "./certbot-conf/live/$DOMAIN" "./certbot-conf/archive/$DOMAIN" "./certbot-conf/renewal/$DOMAIN.conf"
+$COMPOSE run --rm --entrypoint sh certbot -c "\
+  rm -rf /etc/letsencrypt/live/$DOMAIN /etc/letsencrypt/archive/$DOMAIN /etc/letsencrypt/renewal/$DOMAIN.conf"
 
 echo "### Requesting real Let's Encrypt certificate for: ${SANS[*]}..."
 domain_args=""
