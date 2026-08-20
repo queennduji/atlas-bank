@@ -23,9 +23,12 @@ services:
       - caddy-data:/data
       - caddy-config:/config
     depends_on:
-      - frontend
-      - api-gateway
-      - keycloak
+      frontend:
+        condition: service_started
+      api-gateway:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
     networks:
       - atlas-net
 
@@ -121,6 +124,12 @@ services:
       - Kestrel__Endpoints__Http__Url=http://+:8080
       - Kestrel__Endpoints__Grpc__Url=http://+:8081
       - Seq__ServerUrl=http://seq:5341
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
       postgres:
         condition: service_healthy
@@ -146,14 +155,27 @@ services:
       # in appsettings.json (harmless to keep — nothing in production runs on
       # the server's own localhost that would use them).
       - Cors__AllowedOrigins__3=https://atlasbank.dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
-      - keycloak
-      - account-service
-      - transaction-service
-      - ledger-service
-      - notification-service
-      - card-service
-      - statement-service
+      keycloak:
+        condition: service_started
+      account-service:
+        condition: service_healthy
+      transaction-service:
+        condition: service_healthy
+      ledger-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+      card-service:
+        condition: service_healthy
+      statement-service:
+        condition: service_healthy
     networks:
       - atlas-net
 
@@ -183,6 +205,12 @@ services:
       - Kestrel__Endpoints__Http__Url=http://+:8080
       - Kestrel__Endpoints__Grpc__Url=http://+:8081
       - Seq__ServerUrl=http://seq:5341
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
       postgres:
         condition: service_healthy
@@ -191,7 +219,7 @@ services:
       seq:
         condition: service_started
       customer-service:
-        condition: service_started
+        condition: service_healthy
     networks:
       - atlas-net
 
@@ -210,6 +238,12 @@ services:
       - RabbitMQ__Username=atlas
       - RabbitMQ__Password=${RABBITMQ_PASSWORD}
       - Seq__ServerUrl=http://seq:5341
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
       postgres:
         condition: service_healthy
@@ -220,7 +254,7 @@ services:
       seq:
         condition: service_started
       account-service:
-        condition: service_started
+        condition: service_healthy
     networks:
       - atlas-net
 
@@ -236,6 +270,12 @@ services:
       - RabbitMQ__Username=atlas
       - RabbitMQ__Password=${RABBITMQ_PASSWORD}
       - Seq__ServerUrl=http://seq:5341
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
       postgres:
         condition: service_healthy
@@ -262,6 +302,12 @@ services:
       - RabbitMQ__Username=atlas
       - RabbitMQ__Password=${RABBITMQ_PASSWORD}
       - Seq__ServerUrl=http://seq:5341
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
       postgres:
         condition: service_healthy
@@ -272,9 +318,9 @@ services:
       seq:
         condition: service_started
       account-service:
-        condition: service_started
+        condition: service_healthy
       customer-service:
-        condition: service_started
+        condition: service_healthy
     networks:
       - atlas-net
 
@@ -293,6 +339,12 @@ services:
       - RabbitMQ__Username=atlas
       - RabbitMQ__Password=${RABBITMQ_PASSWORD}
       - Seq__ServerUrl=http://seq:5341
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
       postgres:
         condition: service_healthy
@@ -303,9 +355,9 @@ services:
       seq:
         condition: service_started
       account-service:
-        condition: service_started
+        condition: service_healthy
       customer-service:
-        condition: service_started
+        condition: service_healthy
     networks:
       - atlas-net
 
@@ -321,6 +373,12 @@ services:
       - TransactionService__GrpcUrl=http://transaction-service:8081
       - Keycloak__MetadataAddress=https://auth.atlasbank.dev/realms/atlas-bank/.well-known/openid-configuration
       - Seq__ServerUrl=http://seq:5341
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
       postgres:
         condition: service_healthy
@@ -329,11 +387,11 @@ services:
       seq:
         condition: service_started
       account-service:
-        condition: service_started
+        condition: service_healthy
       customer-service:
-        condition: service_started
+        condition: service_healthy
       transaction-service:
-        condition: service_started
+        condition: service_healthy
     networks:
       - atlas-net
 

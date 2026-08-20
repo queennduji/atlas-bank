@@ -52,6 +52,10 @@ builder.Services.AddAuthorization();
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
+// No downstream DB here — this just confirms the gateway process itself is up
+// and has finished loading its YARP route config.
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
 app.UseCors();
@@ -59,6 +63,7 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthChecks("/health");
 app.MapReverseProxy().RequireRateLimiting("per-ip");
 
 app.Run();

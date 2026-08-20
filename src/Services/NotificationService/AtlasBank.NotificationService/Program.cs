@@ -80,6 +80,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddGlobalExceptionHandling();
 
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<NotificationDbContext>();
+
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
@@ -98,6 +101,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapNotificationEndpoints();
+app.MapHealthChecks("/health");
 
 app.Run();
 

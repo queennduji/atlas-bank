@@ -64,6 +64,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 builder.Services.AddGlobalExceptionHandling();
+
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<TransactionDbContext>();
 builder.Services.AddGrpc();
 
 var app = builder.Build();
@@ -81,6 +84,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapTransactionEndpoints();
+app.MapHealthChecks("/health");
 app.MapGrpcService<TransactionGrpcServer>();
 
 app.Run();

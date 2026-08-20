@@ -57,6 +57,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddGlobalExceptionHandling();
 
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<LedgerDbContext>();
+
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
@@ -75,6 +78,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapLedgerEndpoints();
+app.MapHealthChecks("/health");
 
 app.Run();
 
