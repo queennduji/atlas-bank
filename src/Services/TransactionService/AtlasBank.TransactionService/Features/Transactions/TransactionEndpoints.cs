@@ -4,6 +4,8 @@ using AtlasBank.TransactionService.Infrastructure;
 using AtlasBank.Shared.Messaging.Events;
 using FluentValidation;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace AtlasBank.TransactionService.Features.Transactions;
 
@@ -20,7 +22,47 @@ public static class TransactionEndpoints
         group.MapGet("/account/{accountId:guid}", GetByAccount);
     }
 
+    // An optional client-supplied Idempotency-Key (Stripe-style header) lets a retried
+    // request for the same logical deposit/withdrawal/transfer be answered with the
+    // original result instead of being processed a second time — e.g. a network blip
+    // loses the response but not the request, and the caller safely retries with the
+    // same key. No key means no idempotency protection, same as before this existed.
+    private static async Task<Transaction?> FindByIdempotencyKeyAsync(
+        HttpContext http, ITransactionRepository repo, CancellationToken ct)
+    {
+        var key = http.Request.Headers["Idempotency-Key"].ToString();
+        return string.IsNullOrEmpty(key) ? null : await repo.GetByIdempotencyKeyAsync(key, ct);
+    }
+
+    private static string? IdempotencyKey(HttpContext http)
+    {
+        var key = http.Request.Headers["Idempotency-Key"].ToString();
+        return string.IsNullOrEmpty(key) ? null : key;
+    }
+
+    /// <summary>
+    /// Saves a newly-created transaction, tolerating the race where a concurrent request
+    /// carrying the same idempotency key wins first: the unique index rejects our insert,
+    /// and we return that other request's transaction instead of erroring.
+    /// </summary>
+    private static async Task<Transaction?> TrySaveOrGetExistingAsync(
+        Transaction transaction, ITransactionRepository repo, CancellationToken ct)
+    {
+        await repo.AddAsync(transaction, ct);
+        try
+        {
+            await repo.SaveChangesAsync(ct);
+            return transaction;
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation }
+                                            && transaction.IdempotencyKey is not null)
+        {
+            return await repo.GetByIdempotencyKeyAsync(transaction.IdempotencyKey, ct);
+        }
+    }
+
     private static async Task<IResult> Deposit(
+        HttpContext http,
         DepositRequest request,
         IValidator<DepositRequest> validator,
         ITransactionRepository repo,
@@ -31,13 +73,16 @@ public static class TransactionEndpoints
         var validationError = await ValidationHelper.ValidateAsync(validator, request, ct);
         if (validationError is not null) return validationError;
 
+        var existing = await FindByIdempotencyKeyAsync(http, repo, ct);
+        if (existing is not null) return Results.Ok(MapToResponse(existing));
+
         var account = await accountClient.GetByIdAsync(request.AccountId, ct);
         if (account is null) return Results.NotFound("Account not found.");
         if (account.Status != 0) return Results.BadRequest("Account is not active.");
 
-        var transaction = Transaction.CreateDeposit(request.AccountId, request.Amount, account.Currency, request.Description);
-        await repo.AddAsync(transaction, ct);
-        await repo.SaveChangesAsync(ct);
+        var transaction = Transaction.CreateDeposit(request.AccountId, request.Amount, account.Currency, request.Description, IdempotencyKey(http));
+        var saved = await TrySaveOrGetExistingAsync(transaction, repo, ct);
+        if (saved != transaction) return Results.Ok(MapToResponse(saved!));
 
         var credited = await accountClient.CreditAsync(request.AccountId, request.Amount, ct);
         if (!credited)
@@ -59,6 +104,7 @@ public static class TransactionEndpoints
     }
 
     private static async Task<IResult> Withdraw(
+        HttpContext http,
         WithdrawRequest request,
         IValidator<WithdrawRequest> validator,
         ITransactionRepository repo,
@@ -69,14 +115,17 @@ public static class TransactionEndpoints
         var validationError = await ValidationHelper.ValidateAsync(validator, request, ct);
         if (validationError is not null) return validationError;
 
+        var existing = await FindByIdempotencyKeyAsync(http, repo, ct);
+        if (existing is not null) return Results.Ok(MapToResponse(existing));
+
         var account = await accountClient.GetByIdAsync(request.AccountId, ct);
         if (account is null) return Results.NotFound("Account not found.");
         if (account.Status != 0) return Results.BadRequest("Account is not active.");
         if (account.Balance < request.Amount) return Results.BadRequest("Insufficient funds.");
 
-        var transaction = Transaction.CreateWithdrawal(request.AccountId, request.Amount, account.Currency, request.Description);
-        await repo.AddAsync(transaction, ct);
-        await repo.SaveChangesAsync(ct);
+        var transaction = Transaction.CreateWithdrawal(request.AccountId, request.Amount, account.Currency, request.Description, IdempotencyKey(http));
+        var saved = await TrySaveOrGetExistingAsync(transaction, repo, ct);
+        if (saved != transaction) return Results.Ok(MapToResponse(saved!));
 
         var debited = await accountClient.DebitAsync(request.AccountId, request.Amount, ct);
         if (!debited)
@@ -98,6 +147,7 @@ public static class TransactionEndpoints
     }
 
     private static async Task<IResult> Transfer(
+        HttpContext http,
         TransferRequest request,
         IValidator<TransferRequest> validator,
         ITransactionRepository repo,
@@ -108,6 +158,9 @@ public static class TransactionEndpoints
         var validationError = await ValidationHelper.ValidateAsync(validator, request, ct);
         if (validationError is not null) return validationError;
 
+        var existing = await FindByIdempotencyKeyAsync(http, repo, ct);
+        if (existing is not null) return Results.Ok(MapToResponse(existing));
+
         var fromAccount = await accountClient.GetByIdAsync(request.FromAccountId, ct);
         if (fromAccount is null) return Results.NotFound("Source account not found.");
         if (fromAccount.Status != 0) return Results.BadRequest("Source account is not active.");
@@ -117,9 +170,9 @@ public static class TransactionEndpoints
         if (toAccount is null) return Results.NotFound("Destination account not found.");
         if (toAccount.Status != 0) return Results.BadRequest("Destination account is not active.");
 
-        var transaction = Transaction.CreateTransfer(request.FromAccountId, request.ToAccountId, request.Amount, fromAccount.Currency, request.Description);
-        await repo.AddAsync(transaction, ct);
-        await repo.SaveChangesAsync(ct);
+        var transaction = Transaction.CreateTransfer(request.FromAccountId, request.ToAccountId, request.Amount, fromAccount.Currency, request.Description, IdempotencyKey(http));
+        var saved = await TrySaveOrGetExistingAsync(transaction, repo, ct);
+        if (saved != transaction) return Results.Ok(MapToResponse(saved!));
 
         var debited = await accountClient.DebitAsync(request.FromAccountId, request.Amount, ct);
         if (!debited)

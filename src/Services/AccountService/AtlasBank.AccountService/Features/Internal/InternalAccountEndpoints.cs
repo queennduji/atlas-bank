@@ -1,10 +1,20 @@
 using AtlasBank.AccountService.Data.Repositories;
+using AtlasBank.AccountService.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace AtlasBank.AccountService.Features.Internal;
 
 public static class InternalAccountEndpoints
 {
+    // Account.Balance is guarded by an optimistic concurrency token (see
+    // AccountDbContext.UseXminAsConcurrencyToken) rather than a database or distributed
+    // lock — there's a single Postgres instance here, so a plain concurrency check gives
+    // the same correctness guarantee without extra infrastructure. This is the retry
+    // side of that: on a lost race, reload the row's current state and reapply the same
+    // mutation, rather than surfacing the conflict as a failure to the caller.
+    private const int MaxConcurrencyRetries = 5;
+
     public static void MapInternalAccountEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/internal/accounts");
@@ -30,16 +40,7 @@ public static class InternalAccountEndpoints
         var account = await repo.GetByIdAsync(id, ct);
         if (account is null) return Results.NotFound();
 
-        try
-        {
-            account.Credit(request.Amount);
-            await repo.SaveChangesAsync(ct);
-            return Results.Ok(new { account.Balance });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
+        return await ApplyWithRetryAsync(account, a => a.Credit(request.Amount), repo, ct);
     }
 
     private static async Task<IResult> Debit(
@@ -51,15 +52,37 @@ public static class InternalAccountEndpoints
         var account = await repo.GetByIdAsync(id, ct);
         if (account is null) return Results.NotFound();
 
-        try
+        return await ApplyWithRetryAsync(account, a => a.Debit(request.Amount), repo, ct);
+    }
+
+    /// <summary>
+    /// Applies <paramref name="mutate"/> (a Credit or Debit) and saves, retrying against
+    /// the row's latest state if another request updated it first. <paramref name="mutate"/>
+    /// re-runs on every attempt so it's re-validated (e.g. insufficient-funds) against
+    /// fresh data each time, not just retried blindly.
+    /// </summary>
+    private static async Task<IResult> ApplyWithRetryAsync(
+        Account account,
+        Action<Account> mutate,
+        IAccountRepository repo,
+        CancellationToken ct)
+    {
+        for (var attempt = 1; ; attempt++)
         {
-            account.Debit(request.Amount);
-            await repo.SaveChangesAsync(ct);
-            return Results.Ok(new { account.Balance });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Results.BadRequest(ex.Message);
+            try
+            {
+                mutate(account);
+                await repo.SaveChangesAsync(ct);
+                return Results.Ok(new { account.Balance });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+            catch (DbUpdateConcurrencyException) when (attempt < MaxConcurrencyRetries)
+            {
+                await repo.ReloadAsync(account, ct);
+            }
         }
     }
 }

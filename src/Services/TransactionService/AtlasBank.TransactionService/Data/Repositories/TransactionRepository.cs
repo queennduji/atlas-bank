@@ -8,6 +8,9 @@ public class TransactionRepository(TransactionDbContext db) : ITransactionReposi
     public Task<Transaction?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => db.Transactions.FirstOrDefaultAsync(t => t.Id == id, ct);
 
+    public Task<Transaction?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken ct = default)
+        => db.Transactions.FirstOrDefaultAsync(t => t.IdempotencyKey == idempotencyKey, ct);
+
     public Task<List<Transaction>> GetByAccountIdAsync(Guid accountId, CancellationToken ct = default)
         => db.Transactions
             .Where(t => t.AccountId == accountId || t.ToAccountId == accountId)

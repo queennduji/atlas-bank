@@ -19,4 +19,7 @@ public class AccountRepository(AccountDbContext db) : IAccountRepository
 
     public Task SaveChangesAsync(CancellationToken ct = default) =>
         db.SaveChangesAsync(ct);
+
+    public Task ReloadAsync(Account account, CancellationToken ct = default) =>
+        db.Entry(account).ReloadAsync(ct);
 }

@@ -14,12 +14,16 @@ public class Transaction
     public string Reference { get; private set; } = default!;
     public string? Description { get; private set; }
     public string? FailureReason { get; private set; }
+    // Client-supplied (Idempotency-Key header), optional. A unique index on this lets a
+    // retried request for the same logical deposit/withdrawal/transfer be recognized and
+    // answered with the original result instead of being processed a second time.
+    public string? IdempotencyKey { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? CompletedAt { get; private set; }
 
     private Transaction() { }
 
-    public static Transaction CreateDeposit(Guid accountId, decimal amount, string currency, string? description = null)
+    public static Transaction CreateDeposit(Guid accountId, decimal amount, string currency, string? description = null, string? idempotencyKey = null)
     {
         return new Transaction
         {
@@ -31,11 +35,12 @@ public class Transaction
             Currency = currency,
             Reference = GenerateReference(),
             Description = description,
+            IdempotencyKey = idempotencyKey,
             CreatedAt = DateTimeOffset.UtcNow
         };
     }
 
-    public static Transaction CreateWithdrawal(Guid accountId, decimal amount, string currency, string? description = null)
+    public static Transaction CreateWithdrawal(Guid accountId, decimal amount, string currency, string? description = null, string? idempotencyKey = null)
     {
         return new Transaction
         {
@@ -47,11 +52,12 @@ public class Transaction
             Currency = currency,
             Reference = GenerateReference(),
             Description = description,
+            IdempotencyKey = idempotencyKey,
             CreatedAt = DateTimeOffset.UtcNow
         };
     }
 
-    public static Transaction CreateTransfer(Guid fromAccountId, Guid toAccountId, decimal amount, string currency, string? description = null)
+    public static Transaction CreateTransfer(Guid fromAccountId, Guid toAccountId, decimal amount, string currency, string? description = null, string? idempotencyKey = null)
     {
         return new Transaction
         {
@@ -64,6 +70,7 @@ public class Transaction
             Currency = currency,
             Reference = GenerateReference(),
             Description = description,
+            IdempotencyKey = idempotencyKey,
             CreatedAt = DateTimeOffset.UtcNow
         };
     }
