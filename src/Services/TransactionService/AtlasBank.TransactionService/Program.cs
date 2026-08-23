@@ -1,5 +1,6 @@
 using AtlasBank.Grpc;
 using AtlasBank.Shared.Middleware;
+using AtlasBank.Shared.Resilience;
 using AtlasBank.TransactionService.Data;
 using AtlasBank.TransactionService.Data.Repositories;
 using AtlasBank.TransactionService.Features.Transactions;
@@ -22,10 +23,16 @@ builder.Services.AddDbContext<TransactionDbContext>(options =>
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddValidatorsFromAssemblyContaining<DepositValidator>();
 
+// This client carries both a read (GetAccount) and the non-idempotent Credit/Debit
+// writes, so it gets timeout + circuit breaker but NOT automatic retry: if a Credit
+// call's response is lost after the write already landed, blindly retrying it would
+// apply the credit twice. (The other services' AccountGrpcServiceClient registrations
+// only ever call GetAccount and get the full pipeline including retry — see their
+// Program.cs for why that's safe there.)
 builder.Services.AddGrpcClient<AccountGrpcService.AccountGrpcServiceClient>(o =>
 {
     o.Address = new Uri(builder.Configuration["AccountService:GrpcUrl"]!);
-});
+}).AddGrpcResilienceHandler(allowRetry: false);
 builder.Services.AddScoped<IAccountServiceClient, AccountServiceClient>();
 
 builder.Services.AddMassTransit(x =>

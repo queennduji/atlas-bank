@@ -6,6 +6,7 @@ using AtlasBank.AccountService.Grpc;
 using AtlasBank.AccountService.Infrastructure;
 using AtlasBank.Grpc;
 using AtlasBank.Shared.Middleware;
+using AtlasBank.Shared.Resilience;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -22,8 +23,11 @@ builder.Services.AddDbContext<AccountDbContext>(options =>
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAccountValidator>();
 
+// Read-only RPC (GetCustomerByKeycloakId) — safe for the full standard resilience
+// pipeline (timeout, retry with backoff, circuit breaker) since retrying a read can't
+// double-apply anything.
 builder.Services.AddGrpcClient<CustomerGrpcService.CustomerGrpcServiceClient>(o =>
-    o.Address = new Uri(builder.Configuration["CustomerService:GrpcUrl"]!));
+    o.Address = new Uri(builder.Configuration["CustomerService:GrpcUrl"]!)).AddGrpcResilienceHandler();
 builder.Services.AddScoped<ICustomerServiceClient, CustomerServiceClient>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

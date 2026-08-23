@@ -1,4 +1,5 @@
 using AtlasBank.Shared.Middleware;
+using AtlasBank.Shared.Resilience;
 using System.Text.Json.Serialization;
 using AtlasBank.Grpc;
 using AtlasBank.NotificationService.Data;
@@ -21,18 +22,20 @@ builder.Services.AddDbContext<NotificationDbContext>(options =>
 
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
-// Account service via gRPC
+// Account service via gRPC. Only GetAccount (a read) is called here, so the full
+// standard resilience pipeline (timeout, retry with backoff, circuit breaker) is safe —
+// retrying a read can't double-apply anything.
 builder.Services.AddGrpcClient<AccountGrpcService.AccountGrpcServiceClient>(o =>
 {
     o.Address = new Uri(builder.Configuration["AccountService:GrpcUrl"]!);
-});
+}).AddGrpcResilienceHandler();
 builder.Services.AddScoped<IAccountServiceClient, AccountServiceClient>();
 
-// Customer service via gRPC
+// Customer service via gRPC (read-only, same reasoning as above).
 builder.Services.AddGrpcClient<CustomerGrpcService.CustomerGrpcServiceClient>(o =>
 {
     o.Address = new Uri(builder.Configuration["CustomerService:GrpcUrl"]!);
-});
+}).AddGrpcResilienceHandler();
 builder.Services.AddScoped<ICustomerServiceClient, CustomerServiceClient>();
 
 builder.Services.AddSingleton<IEmailService, ConsoleEmailService>();

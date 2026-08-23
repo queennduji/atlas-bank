@@ -1,4 +1,5 @@
 using AtlasBank.Shared.Middleware;
+using AtlasBank.Shared.Resilience;
 using System.Text.Json.Serialization;
 using AtlasBank.CardService.Data;
 using AtlasBank.CardService.Data.Repositories;
@@ -21,12 +22,15 @@ builder.Services.AddDbContext<CardDbContext>(options =>
 
 builder.Services.AddScoped<ICardRepository, CardRepository>();
 
+// Both gRPC calls this service makes are reads (GetAccount, GetCustomer) — safe for the
+// full standard resilience pipeline (timeout, retry with backoff, circuit breaker),
+// since retrying a read can't double-apply anything.
 builder.Services.AddGrpcClient<AccountGrpcService.AccountGrpcServiceClient>(options =>
-    options.Address = new Uri(builder.Configuration["AccountService:GrpcUrl"]!));
+    options.Address = new Uri(builder.Configuration["AccountService:GrpcUrl"]!)).AddGrpcResilienceHandler();
 builder.Services.AddScoped<IAccountServiceClient, AccountServiceClient>();
 
 builder.Services.AddGrpcClient<CustomerGrpcService.CustomerGrpcServiceClient>(o =>
-    o.Address = new Uri(builder.Configuration["CustomerService:GrpcUrl"]!));
+    o.Address = new Uri(builder.Configuration["CustomerService:GrpcUrl"]!)).AddGrpcResilienceHandler();
 builder.Services.AddScoped<ICustomerServiceClient, CustomerServiceClient>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<IssueCardValidator>();

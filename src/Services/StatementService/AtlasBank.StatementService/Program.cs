@@ -1,5 +1,6 @@
 using AtlasBank.Grpc;
 using AtlasBank.Shared.Middleware;
+using AtlasBank.Shared.Resilience;
 using AtlasBank.StatementService.Data;
 using AtlasBank.StatementService.Data.Repositories;
 using AtlasBank.StatementService.Features.Statements;
@@ -20,19 +21,23 @@ builder.Services.AddDbContext<StatementDbContext>(options =>
 
 builder.Services.AddScoped<IStatementRepository, StatementRepository>();
 
+// All three gRPC calls this service makes are reads (GetAccount, GetCustomer*,
+// GetTransactionsByAccount) — safe for the full standard resilience pipeline (timeout,
+// retry with backoff, circuit breaker), since retrying a read can't double-apply
+// anything.
 var accountGrpcUrl = builder.Configuration["AccountService:GrpcUrl"]!;
 builder.Services.AddGrpcClient<AccountGrpcService.AccountGrpcServiceClient>(o =>
-    o.Address = new Uri(accountGrpcUrl));
+    o.Address = new Uri(accountGrpcUrl)).AddGrpcResilienceHandler();
 builder.Services.AddScoped<IAccountServiceClient, AccountServiceClient>();
 
 var customerGrpcUrl = builder.Configuration["CustomerService:GrpcUrl"]!;
 builder.Services.AddGrpcClient<CustomerGrpcService.CustomerGrpcServiceClient>(o =>
-    o.Address = new Uri(customerGrpcUrl));
+    o.Address = new Uri(customerGrpcUrl)).AddGrpcResilienceHandler();
 builder.Services.AddScoped<ICustomerServiceClient, CustomerServiceClient>();
 
 var transactionGrpcUrl = builder.Configuration["TransactionService:GrpcUrl"]!;
 builder.Services.AddGrpcClient<TransactionGrpcService.TransactionGrpcServiceClient>(o =>
-    o.Address = new Uri(transactionGrpcUrl));
+    o.Address = new Uri(transactionGrpcUrl)).AddGrpcResilienceHandler();
 builder.Services.AddScoped<ITransactionServiceClient, TransactionServiceClient>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<GenerateStatementRequestValidator>();

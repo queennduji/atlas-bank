@@ -1,4 +1,5 @@
 using AtlasBank.AccountService.Data.Repositories;
+using AtlasBank.AccountService.Domain.Entities;
 using AtlasBank.Grpc;
 using Grpc.Core;
 
@@ -36,16 +37,11 @@ public class AccountGrpcService(IAccountRepository repo) : AtlasBank.Grpc.Accoun
         if (account is null)
             return new BalanceChangeReply { Success = false, Error = "Account not found." };
 
-        try
-        {
-            account.Credit((decimal)request.Amount);
-            await repo.SaveChangesAsync(context.CancellationToken);
-            return new BalanceChangeReply { Success = true, NewBalance = (double)account.Balance };
-        }
-        catch (InvalidOperationException ex)
-        {
-            return new BalanceChangeReply { Success = false, Error = ex.Message };
-        }
+        var result = await AccountConcurrencyRetry.ApplyAsync(
+            account, a => a.Credit((decimal)request.Amount), repo, context.CancellationToken);
+        return result.Outcome == ConcurrencyOutcome.Success
+            ? new BalanceChangeReply { Success = true, NewBalance = (double)account.Balance }
+            : new BalanceChangeReply { Success = false, Error = result.Message };
     }
 
     public override async Task<BalanceChangeReply> Debit(BalanceChangeRequest request, ServerCallContext context)
@@ -57,15 +53,10 @@ public class AccountGrpcService(IAccountRepository repo) : AtlasBank.Grpc.Accoun
         if (account is null)
             return new BalanceChangeReply { Success = false, Error = "Account not found." };
 
-        try
-        {
-            account.Debit((decimal)request.Amount);
-            await repo.SaveChangesAsync(context.CancellationToken);
-            return new BalanceChangeReply { Success = true, NewBalance = (double)account.Balance };
-        }
-        catch (InvalidOperationException ex)
-        {
-            return new BalanceChangeReply { Success = false, Error = ex.Message };
-        }
+        var result = await AccountConcurrencyRetry.ApplyAsync(
+            account, a => a.Debit((decimal)request.Amount), repo, context.CancellationToken);
+        return result.Outcome == ConcurrencyOutcome.Success
+            ? new BalanceChangeReply { Success = true, NewBalance = (double)account.Balance }
+            : new BalanceChangeReply { Success = false, Error = result.Message };
     }
 }
