@@ -1,0 +1,17 @@
+[Unit]
+Description=Atlas Bank system health check endpoint (host-level, proxied by nginx)
+After=network.target docker.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/atlas-bank
+# Real secret lives only on the VM at /etc/atlas-health.env (not in git) —
+# see README.md in this directory for the one-time setup.
+EnvironmentFile=/etc/atlas-health.env
+ExecStart=/usr/bin/python3 /home/ubuntu/atlas-bank/infra/health-check/server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

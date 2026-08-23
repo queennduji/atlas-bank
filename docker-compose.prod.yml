@@ -31,6 +31,11 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - certbot-conf:/etc/letsencrypt
       - certbot-www:/var/www/certbot
+    # Lets nginx reach the host-level atlas-health systemd service (see
+    # infra/health-check/) for the /_health/system endpoint — that service
+    # deliberately runs outside Docker so its stats reflect true host state.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       frontend:
         condition: service_started
