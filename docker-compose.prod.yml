@@ -34,8 +34,18 @@ services:
     # Lets nginx reach the host-level atlas-health systemd service (see
     # infra/health-check/) for the /_health/system endpoint — that service
     # deliberately runs outside Docker so its stats reflect true host state.
+    #
+    # Docker's built-in "host-gateway" alias resolves to the *default* bridge
+    # network's gateway (172.17.0.1) regardless of which network the
+    # container actually runs on — confirmed the hard way: nginx sits on
+    # atlas-net (a custom bridge, since this box also runs a second project's
+    # containers on their own network), whose real gateway is 172.18.0.1, and
+    # "host-gateway" produced a "Host is unreachable" trying 172.17.0.1
+    # instead. Pointing at atlas-net's actual gateway IP directly.
+    # If atlas-net is ever fully recreated (not just `up -d`), re-check with:
+    #   docker network inspect atlas-bank_atlas-net --format '{{range .IPAM.Config}}{{.Gateway}}{{end}}'
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:172.18.0.1"
     depends_on:
       frontend:
         condition: service_started
