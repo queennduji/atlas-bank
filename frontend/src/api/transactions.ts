@@ -43,7 +43,10 @@ function useInvalidateAfterMoneyMovement() {
 export function useDeposit() {
   const invalidate = useInvalidateAfterMoneyMovement();
   return useMutation({
-    mutationFn: transactionsApi.deposit,
+    // Wrapped rather than passed directly: TanStack Query calls mutationFn as
+    // (variables, context), and that context object would otherwise land in
+    // transactionsApi.deposit's second (idempotencyKey) parameter position.
+    mutationFn: (body: DepositRequest) => transactionsApi.deposit(body),
     onSuccess: (tx) => invalidate([tx.accountId]),
   });
 }
@@ -51,7 +54,7 @@ export function useDeposit() {
 export function useWithdraw() {
   const invalidate = useInvalidateAfterMoneyMovement();
   return useMutation({
-    mutationFn: transactionsApi.withdraw,
+    mutationFn: (body: WithdrawRequest) => transactionsApi.withdraw(body),
     onSuccess: (tx) => invalidate([tx.accountId]),
   });
 }
@@ -59,7 +62,7 @@ export function useWithdraw() {
 export function useTransfer() {
   const invalidate = useInvalidateAfterMoneyMovement();
   return useMutation({
-    mutationFn: transactionsApi.transfer,
+    mutationFn: (body: TransferRequest) => transactionsApi.transfer(body),
     onSuccess: (tx) => invalidate([tx.accountId, tx.toAccountId ?? undefined]),
   });
 }
