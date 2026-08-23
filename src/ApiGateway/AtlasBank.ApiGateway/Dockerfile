@@ -18,4 +18,7 @@ RUN dotnet publish "src/ApiGateway/AtlasBank.ApiGateway/AtlasBank.ApiGateway.csp
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+# Microsoft's aspnet base image ships a ready-made non-root "app" user (owns /app
+# already) specifically for this — the image just doesn't switch to it by default.
+USER $APP_UID
 ENTRYPOINT ["dotnet", "AtlasBank.ApiGateway.dll"]

@@ -62,7 +62,7 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: "REDACTED-ROTATED"
+      POSTGRES_PASSWORD: "local-dev-only"
     ports:
       - "5433:5432"
     volumes:
@@ -94,7 +94,7 @@ services:
       - "5005:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Customers;Username=postgres;Password=REDACTED-ROTATED
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Customers;Username=postgres;Password=local-dev-only
       - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
       - Keycloak__BaseUrl=http://keycloak:8080
       - Keycloak__AdminUsername=admin
@@ -187,7 +187,7 @@ services:
       - "5001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Accounts;Username=postgres;Password=REDACTED-ROTATED
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Accounts;Username=postgres;Password=local-dev-only
       - CustomerService__GrpcUrl=http://customer-service:8081
       - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
       - Kestrel__Endpoints__Http__Url=http://+:8080
@@ -219,7 +219,7 @@ services:
       - "5002:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Transactions;Username=postgres;Password=REDACTED-ROTATED
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Transactions;Username=postgres;Password=local-dev-only
       - AccountService__GrpcUrl=http://account-service:8081
       - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
       - Kestrel__Endpoints__Http__Url=http://+:8080
@@ -256,7 +256,7 @@ services:
       - "5003:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Ledger;Username=postgres;Password=REDACTED-ROTATED
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Ledger;Username=postgres;Password=local-dev-only
       - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=atlas
@@ -288,7 +288,7 @@ services:
       - "5004:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Notifications;Username=postgres;Password=REDACTED-ROTATED
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Notifications;Username=postgres;Password=local-dev-only
       - AccountService__GrpcUrl=http://account-service:8081
       - CustomerService__GrpcUrl=http://customer-service:8081
       - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
@@ -326,7 +326,7 @@ services:
       - "5006:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Cards;Username=postgres;Password=REDACTED-ROTATED
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Cards;Username=postgres;Password=local-dev-only
       - AccountService__GrpcUrl=http://account-service:8081
       - CustomerService__GrpcUrl=http://customer-service:8081
       - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
@@ -365,7 +365,7 @@ services:
       - "5007:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Statements;Username=postgres;Password=REDACTED-ROTATED
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=AtlasBank_Statements;Username=postgres;Password=local-dev-only
       - AccountService__GrpcUrl=http://account-service:8081
       - CustomerService__GrpcUrl=http://customer-service:8081
       - TransactionService__GrpcUrl=http://transaction-service:8081

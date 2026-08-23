@@ -47,7 +47,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         if (!string.IsNullOrEmpty(metadataAddress)) options.MetadataAddress = metadataAddress;
     });
 
-builder.Services.AddAuthorization();
+// Named so YARP's per-route "AuthorizationPolicy" config (see appsettings.json)
+// can require it on every route except the one genuinely-public one
+// (customer registration) — each downstream service still enforces its own
+// auth independently, but this closes the gap where the gateway itself
+// proxied unauthenticated requests straight through with no policy at all,
+// relying entirely on every service remembering to protect its own routes.
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("authenticated", policy => policy.RequireAuthenticatedUser());
 
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));

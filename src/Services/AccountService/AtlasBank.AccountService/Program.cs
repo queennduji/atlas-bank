@@ -1,7 +1,6 @@
 using AtlasBank.AccountService.Data;
 using AtlasBank.AccountService.Data.Repositories;
 using AtlasBank.AccountService.Features.Accounts;
-using AtlasBank.AccountService.Features.Internal;
 using AtlasBank.AccountService.Grpc;
 using AtlasBank.AccountService.Infrastructure;
 using AtlasBank.Grpc;
@@ -70,7 +69,6 @@ app.UseAuthorization();
 
 app.MapGrpcService<AtlasBank.AccountService.Grpc.AccountGrpcService>();
 app.MapAccountEndpoints();
-app.MapInternalAccountEndpoints();
 app.MapHealthChecks("/health");
 
 app.Run();
