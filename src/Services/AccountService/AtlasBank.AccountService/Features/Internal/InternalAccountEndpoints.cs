@@ -81,7 +81,19 @@ public static class InternalAccountEndpoints
             }
             catch (DbUpdateConcurrencyException) when (attempt < MaxConcurrencyRetries)
             {
+                // Small jittered backoff spreads retries out under heavy contention
+                // instead of every loser immediately re-colliding with the same
+                // competitors on the next attempt.
+                await Task.Delay(Random.Shared.Next(10, 40) * attempt, ct);
                 await repo.ReloadAsync(account, ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Retries exhausted under sustained contention on this one row. Fail
+                // loudly and explicitly (409, safe to retry) instead of letting this
+                // surface as an opaque 500 — no data was lost, this request's change
+                // was simply never applied.
+                return Results.Conflict($"Too many concurrent updates to account {account.Id}. Please retry.");
             }
         }
     }
