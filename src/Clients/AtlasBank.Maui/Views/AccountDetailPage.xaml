@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:AtlasBank.Maui.ViewModels"
+             x:Class="AtlasBank.Maui.Views.AccountDetailPage"
+             x:DataType="vm:AccountDetailViewModel"
+             Title="Account">
+
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="20" Spacing="16">
+
+                <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorLabel}"
+                       IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullOrEmptyConverter}}" />
+
+                <Border Style="{StaticResource CardBorder}">
+                    <VerticalStackLayout Spacing="6">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="{Binding Account.Type}" Style="{StaticResource SectionHeaderLabel}" />
+                            <Border Style="{StaticResource BadgeBorder}" BackgroundColor="{Binding Account.Status, Converter={StaticResource StatusToColorConverter}}">
+                                <Label Text="{Binding Account.Status}" Style="{StaticResource BadgeLabel}" />
+                            </Border>
+                        </HorizontalStackLayout>
+                        <Label Text="{Binding Account.AccountNumber}" Style="{StaticResource MutedLabel}" />
+                        <Label FontSize="32" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource TextLight}, Dark={StaticResource TextDark}}">
+                            <Label.Text>
+                                <MultiBinding Converter="{StaticResource MoneyMultiConverter}">
+                                    <Binding Path="Account.Balance" />
+                                    <Binding Path="Account.Currency" />
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                    <Button Grid.Column="0" Text="Deposit" Style="{StaticResource SecondaryButton}" Command="{Binding DepositCommand}" />
+                    <Button Grid.Column="1" Text="Withdraw" Style="{StaticResource SecondaryButton}" Command="{Binding WithdrawCommand}"
+                            IsVisible="{Binding IsChecking}" />
+                    <Button Grid.Column="2" Text="Transfer" Style="{StaticResource SecondaryButton}" Command="{Binding TransferCommand}" />
+                </Grid>
+
+                <Button Text="View statements" Style="{StaticResource TextButton}" Command="{Binding ViewStatementsCommand}"
+                        HorizontalOptions="Start" />
+
+                <Label Text="TRANSACTIONS" Style="{StaticResource SectionHeaderLabel}" />
+                <CollectionView ItemsSource="{Binding Transactions}" SelectionMode="None"
+                                EmptyView="No transactions yet.">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:TransactionRow">
+                            <Border Style="{StaticResource CardBorder}" Padding="14">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
+                                    <Label Grid.Row="0" Grid.Column="0" Text="{Binding Transaction.Type}" Style="{StaticResource BodyLabel}" FontAttributes="Bold" />
+                                    <Label Grid.Row="0" Grid.Column="1" Text="{Binding SignedAmountText}"
+                                           FontAttributes="Bold"
+                                           TextColor="{Binding IsCredit, Converter={StaticResource StatusToColorConverter}}" />
+                                    <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                           Text="{Binding Transaction.Description}" Style="{StaticResource MutedLabel}"
+                                           IsVisible="{Binding Transaction.Description, Converter={StaticResource IsNotNullOrEmptyConverter}}" />
+                                    <Label Grid.Row="2" Grid.Column="0" Text="{Binding Transaction.CreatedAt, StringFormat='{0:g}'}" Style="{StaticResource MutedLabel}" />
+                                    <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource BadgeBorder}"
+                                            BackgroundColor="{Binding Transaction.Status, Converter={StaticResource StatusToColorConverter}}">
+                                        <Label Text="{Binding Transaction.Status}" Style="{StaticResource BadgeLabel}" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

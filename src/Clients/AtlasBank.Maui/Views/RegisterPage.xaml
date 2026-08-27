@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:AtlasBank.Maui.ViewModels"
+             x:Class="AtlasBank.Maui.Views.RegisterPage"
+             x:DataType="vm:RegisterViewModel"
+             Title="Create account">
+
+    <Grid>
+        <ScrollView IsVisible="{Binding IsComplete, Converter={StaticResource InverseBoolConverter}}">
+            <VerticalStackLayout Padding="20" Spacing="18">
+
+                <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorLabel}"
+                       IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullOrEmptyConverter}}" />
+
+                <Label Text="ABOUT YOU" Style="{StaticResource SectionHeaderLabel}" />
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <VerticalStackLayout Grid.Column="0" Spacing="4">
+                        <Label Text="First name" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource FieldBorder}">
+                            <Entry Text="{Binding FirstName}" Placeholder="Ada" />
+                        </Border>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                        <Label Text="Last name" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource FieldBorder}">
+                            <Entry Text="{Binding LastName}" Placeholder="Lovelace" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Email" Style="{StaticResource FieldLabel}" />
+                    <Border Style="{StaticResource FieldBorder}">
+                        <Entry Text="{Binding Email}" Keyboard="Email" Placeholder="you@example.com" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Password" Style="{StaticResource FieldLabel}" />
+                    <Border Style="{StaticResource FieldBorder}">
+                        <Entry Text="{Binding Password}" IsPassword="True" Placeholder="At least 8 characters" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Phone number" Style="{StaticResource FieldLabel}" />
+                    <Border Style="{StaticResource FieldBorder}">
+                        <Entry Text="{Binding PhoneNumber}" Keyboard="Telephone" Placeholder="+1 555 000 1234" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Date of birth" Style="{StaticResource FieldLabel}" />
+                    <Border Style="{StaticResource FieldBorder}">
+                        <DatePicker x:Name="DobPicker" Date="{Binding DateOfBirth}" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <Label Text="ADDRESS" Style="{StaticResource SectionHeaderLabel}" />
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Street" Style="{StaticResource FieldLabel}" />
+                    <Border Style="{StaticResource FieldBorder}">
+                        <Entry Text="{Binding Street}" Placeholder="1 Main St" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <VerticalStackLayout Grid.Column="0" Spacing="4">
+                        <Label Text="City" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource FieldBorder}">
+                            <Entry Text="{Binding City}" />
+                        </Border>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                        <Label Text="State" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource FieldBorder}">
+                            <Entry Text="{Binding State}" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <VerticalStackLayout Grid.Column="0" Spacing="4">
+                        <Label Text="ZIP code" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource FieldBorder}">
+                            <Entry Text="{Binding ZipCode}" Keyboard="Numeric" />
+                        </Border>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                        <Label Text="Country" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource FieldBorder}">
+                            <Entry Text="{Binding Country}" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <Button Text="Create account" Style="{StaticResource PrimaryButton}"
+                        Command="{Binding SubmitCommand}" Margin="0,8,0,0" />
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                                   Color="{AppThemeBinding Light={StaticResource BrandLight}, Dark={StaticResource BrandDark}}" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <VerticalStackLayout IsVisible="{Binding IsComplete}" VerticalOptions="Center" Padding="32" Spacing="12">
+            <Label Text="Account created" Style="{StaticResource TitleLabel}" HorizontalOptions="Center" />
+            <Label Text="Sign in to start banking." Style="{StaticResource MutedLabel}" HorizontalOptions="Center" />
+            <Button Text="Go to sign in" Style="{StaticResource PrimaryButton}" Command="{Binding GoToLoginCommand}" Margin="0,12,0,0" />
+        </VerticalStackLayout>
+    </Grid>
+
+</ContentPage>

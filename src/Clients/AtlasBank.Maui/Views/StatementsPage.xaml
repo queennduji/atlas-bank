@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:AtlasBank.Maui.ViewModels"
+             xmlns:models="clr-namespace:AtlasBank.Clients.Core.Models;assembly=AtlasBank.Clients.Core"
+             x:Class="AtlasBank.Maui.Views.StatementsPage"
+             x:DataType="vm:StatementsViewModel"
+             Title="Statements">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+
+            <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorLabel}"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullOrEmptyConverter}}" />
+
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Account" Style="{StaticResource FieldLabel}" />
+                <Border Style="{StaticResource FieldBorder}">
+                    <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}"
+                            ItemDisplayBinding="{Binding AccountNumber}" Title="Choose an account" />
+                </Border>
+            </VerticalStackLayout>
+
+            <CollectionView ItemsSource="{Binding Statements}" SelectionMode="None"
+                            EmptyView="No statements generated for this account yet.">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:StatementSummary">
+                        <Border Style="{StaticResource CardBorder}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=BindingContext.ViewStatementCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <Label Style="{StaticResource BodyLabel}" FontAttributes="Bold">
+                                        <Label.Text>
+                                            <MultiBinding StringFormat="{}{0:d} – {1:d}">
+                                                <Binding Path="PeriodStart" />
+                                                <Binding Path="PeriodEnd" />
+                                            </MultiBinding>
+                                        </Label.Text>
+                                    </Label>
+                                    <Label Text="{Binding GeneratedAt, StringFormat='Generated {0:g}'}" Style="{StaticResource MutedLabel}" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="1" Text="{Binding ClosingBalance, StringFormat='{0:C}'}"
+                                       FontAttributes="Bold" VerticalOptions="Center"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextLight}, Dark={StaticResource TextDark}}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Border Style="{StaticResource CardBorder}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="GENERATE A STATEMENT" Style="{StaticResource SectionHeaderLabel}" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                            <Label Text="From" Style="{StaticResource FieldLabel}" />
+                            <Border Style="{StaticResource FieldBorder}">
+                                <DatePicker Date="{Binding PeriodStart}" />
+                            </Border>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="To" Style="{StaticResource FieldLabel}" />
+                            <Border Style="{StaticResource FieldBorder}">
+                                <DatePicker Date="{Binding PeriodEnd}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Grid>
+                    <Button Text="Generate" Style="{StaticResource SecondaryButton}" Command="{Binding GenerateCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

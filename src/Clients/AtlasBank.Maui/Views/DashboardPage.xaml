@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:AtlasBank.Maui.ViewModels"
+             xmlns:models="clr-namespace:AtlasBank.Clients.Core.Models;assembly=AtlasBank.Clients.Core"
+             x:Class="AtlasBank.Maui.Views.DashboardPage"
+             x:DataType="vm:DashboardViewModel"
+             Title="Accounts">
+
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="20" Spacing="16">
+
+                <Label Style="{StaticResource TitleLabel}">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="Welcome back" />
+                            <Span Text="{Binding CustomerFirstName, StringFormat=', {0}'}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+
+                <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorLabel}"
+                       IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullOrEmptyConverter}}" />
+
+                <Border Style="{StaticResource CardBorder}" IsVisible="{Binding IsShowingCachedData}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource WarningLight}, Dark={StaticResource WarningDark}}">
+                    <Label Style="{StaticResource BadgeLabel}" TextColor="{StaticResource White}"
+                           Text="{Binding CachedAsOfUtc, StringFormat='Offline — showing balances saved at {0:t}.'}" />
+                </Border>
+
+                <CollectionView ItemsSource="{Binding Accounts}" SelectionMode="None"
+                                EmptyView="No accounts yet — open one below to get started."
+                                x:DataType="vm:DashboardViewModel">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Account">
+                            <Border Style="{StaticResource CardBorder}">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=BindingContext.ViewAccountCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
+                                    <Label Grid.Row="0" Grid.Column="0" Text="{Binding Type}" Style="{StaticResource SectionHeaderLabel}" />
+                                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource BadgeBorder}"
+                                            BackgroundColor="{Binding Status, Converter={StaticResource StatusToColorConverter}}">
+                                        <Label Text="{Binding Status}" Style="{StaticResource BadgeLabel}" />
+                                    </Border>
+                                    <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding AccountNumber}" Style="{StaticResource MutedLabel}" />
+                                    <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontSize="26" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextLight}, Dark={StaticResource TextDark}}">
+                                        <Label.Text>
+                                            <MultiBinding Converter="{StaticResource MoneyMultiConverter}">
+                                                <Binding Path="Balance" />
+                                                <Binding Path="Currency" />
+                                            </MultiBinding>
+                                        </Label.Text>
+                                    </Label>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Border Style="{StaticResource CardBorder}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="OPEN A NEW ACCOUNT" Style="{StaticResource SectionHeaderLabel}" />
+                        <Picker ItemsSource="{Binding AccountTypes}" SelectedItem="{Binding NewAccountType}" Title="Account type" />
+                        <Button Text="Open account" Style="{StaticResource SecondaryButton}" Command="{Binding OpenAccountCommand}" />
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

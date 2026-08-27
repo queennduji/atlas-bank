@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:AtlasBank.Maui.ViewModels"
+             x:Class="AtlasBank.Maui.Views.TransferPage"
+             x:DataType="vm:TransferViewModel"
+             Title="{Binding Title}">
+
+    <Grid>
+        <ScrollView IsVisible="{Binding IsComplete, Converter={StaticResource InverseBoolConverter}}">
+            <VerticalStackLayout Padding="20" Spacing="16">
+
+                <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorLabel}"
+                       IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullOrEmptyConverter}}" />
+
+                <Border Style="{StaticResource CardBorder}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="FROM" Style="{StaticResource SectionHeaderLabel}" />
+                        <Label Text="{Binding FromAccount.AccountNumber}" Style="{StaticResource BodyLabel}" FontAttributes="Bold" />
+                        <Label Style="{StaticResource MutedLabel}">
+                            <Label.Text>
+                                <MultiBinding Converter="{StaticResource MoneyMultiConverter}" StringFormat="Available: {0}">
+                                    <Binding Path="FromAccount.Balance" />
+                                    <Binding Path="FromAccount.Currency" />
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
+                    </VerticalStackLayout>
+                </Border>
+
+                <VerticalStackLayout Spacing="4" IsVisible="{Binding IsTransfer}">
+                    <Label Text="To account" Style="{StaticResource FieldLabel}" />
+                    <Border Style="{StaticResource FieldBorder}">
+                        <Picker ItemsSource="{Binding OtherAccounts}" SelectedItem="{Binding ToAccount}"
+                                ItemDisplayBinding="{Binding AccountNumber}" Title="Choose an account" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Amount" Style="{StaticResource FieldLabel}" />
+                    <Border Style="{StaticResource FieldBorder}">
+                        <Entry Text="{Binding AmountText}" Keyboard="Numeric" Placeholder="0.00" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Description (optional)" Style="{StaticResource FieldLabel}" />
+                    <Border Style="{StaticResource FieldBorder}">
+                        <Entry Text="{Binding Description}" Placeholder="What's this for?" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <Button Text="{Binding Title}" Style="{StaticResource PrimaryButton}" Command="{Binding SubmitCommand}" />
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                                   Color="{AppThemeBinding Light={StaticResource BrandLight}, Dark={StaticResource BrandDark}}" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <VerticalStackLayout IsVisible="{Binding IsComplete}" VerticalOptions="Center" Padding="32" Spacing="12">
+            <Label Text="Done" Style="{StaticResource TitleLabel}" HorizontalOptions="Center" />
+            <Label Style="{StaticResource MutedLabel}" HorizontalOptions="Center">
+                <Label.Text>
+                    <MultiBinding StringFormat="Your {0} of {1} was submitted.">
+                        <Binding Path="Mode" />
+                        <Binding Path="AmountText" />
+                    </MultiBinding>
+                </Label.Text>
+            </Label>
+            <Button Text="Close" Style="{StaticResource PrimaryButton}" Command="{Binding CloseCommand}" Margin="0,12,0,0" />
+        </VerticalStackLayout>
+    </Grid>
+
+</ContentPage>

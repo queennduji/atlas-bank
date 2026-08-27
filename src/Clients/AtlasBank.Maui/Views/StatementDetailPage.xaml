@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:AtlasBank.Maui.ViewModels"
+             xmlns:models="clr-namespace:AtlasBank.Clients.Core.Models;assembly=AtlasBank.Clients.Core"
+             x:Class="AtlasBank.Maui.Views.StatementDetailPage"
+             x:DataType="vm:StatementDetailViewModel"
+             Title="Statement">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+
+            <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorLabel}"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullOrEmptyConverter}}" />
+
+            <Border Style="{StaticResource CardBorder}" IsVisible="{Binding Statement, Converter={StaticResource IsNotNullConverter}}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{Binding Statement.CustomerName}" Style="{StaticResource BodyLabel}" FontAttributes="Bold" />
+                    <Label Text="{Binding Statement.AccountNumber}" Style="{StaticResource MutedLabel}" />
+                    <Label Style="{StaticResource MutedLabel}">
+                        <Label.Text>
+                            <MultiBinding StringFormat="{}{0:d} – {1:d}">
+                                <Binding Path="Statement.PeriodStart" />
+                                <Binding Path="Statement.PeriodEnd" />
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" RowSpacing="10" Margin="0,10,0,0">
+                        <VerticalStackLayout Grid.Row="0" Grid.Column="0">
+                            <Label Text="OPENING BALANCE" Style="{StaticResource SectionHeaderLabel}" />
+                            <Label Text="{Binding Statement.OpeningBalance, StringFormat='{0:C}'}" Style="{StaticResource BodyLabel}" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Row="0" Grid.Column="1">
+                            <Label Text="CLOSING BALANCE" Style="{StaticResource SectionHeaderLabel}" />
+                            <Label Text="{Binding Statement.ClosingBalance, StringFormat='{0:C}'}" Style="{StaticResource BodyLabel}" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Row="1" Grid.Column="0">
+                            <Label Text="TOTAL CREDITS" Style="{StaticResource SectionHeaderLabel}" />
+                            <Label Text="{Binding Statement.TotalCredits, StringFormat='{0:C}'}" Style="{StaticResource BodyLabel}"
+                                   TextColor="{AppThemeBinding Light={StaticResource PositiveLight}, Dark={StaticResource PositiveDark}}" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Row="1" Grid.Column="1">
+                            <Label Text="TOTAL DEBITS" Style="{StaticResource SectionHeaderLabel}" />
+                            <Label Text="{Binding Statement.TotalDebits, StringFormat='{0:C}'}" Style="{StaticResource BodyLabel}"
+                                   TextColor="{AppThemeBinding Light={StaticResource NegativeLight}, Dark={StaticResource NegativeDark}}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="TRANSACTIONS" Style="{StaticResource SectionHeaderLabel}" />
+            <CollectionView ItemsSource="{Binding Lines}" SelectionMode="None">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="6" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:StatementLine">
+                        <Grid ColumnDefinitions="*,Auto,Auto" Padding="0,6">
+                            <VerticalStackLayout Grid.Column="0">
+                                <Label Text="{Binding Description}" Style="{StaticResource BodyLabel}" />
+                                <Label Text="{Binding Date, StringFormat='{0:d}'}" Style="{StaticResource MutedLabel}" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="1" Text="{Binding Amount, StringFormat='{0:C}'}"
+                                   VerticalOptions="Center" Margin="0,0,12,0"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextLight}, Dark={StaticResource TextDark}}" />
+                            <Label Grid.Column="2" Text="{Binding RunningBalance, StringFormat='{0:C}'}"
+                                   VerticalOptions="Center" Style="{StaticResource MutedLabel}" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

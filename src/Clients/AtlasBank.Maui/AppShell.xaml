@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="AtlasBank.Maui.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:AtlasBank.Maui.Views"
+    FlyoutBehavior="Disabled"
+    Title="Atlas Bank">
+
+    <!-- Login/Register live outside the TabBar; AccountDetail/Transfer/StatementDetail are
+         pushed on demand via Routing.RegisterRoute in AppShell.xaml.cs rather than declared
+         here, since they're reached with a required parameter (an account or statement id)
+         rather than from the flyout/tab bar. -->
+    <ShellContent
+        Route="Login"
+        ContentTemplate="{DataTemplate views:LoginPage}" />
+
+    <ShellContent
+        Route="Register"
+        ContentTemplate="{DataTemplate views:RegisterPage}" />
+
+    <TabBar Route="AppTabs">
+        <ShellContent Title="Accounts" Route="Dashboard" ContentTemplate="{DataTemplate views:DashboardPage}" />
+        <ShellContent Title="Cards" Route="Cards" ContentTemplate="{DataTemplate views:CardsPage}" />
+        <ShellContent Title="Statements" Route="Statements" ContentTemplate="{DataTemplate views:StatementsPage}" />
+        <ShellContent Title="Profile" Route="Profile" ContentTemplate="{DataTemplate views:ProfilePage}" />
+    </TabBar>
+
+</Shell>

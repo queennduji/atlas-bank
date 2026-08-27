@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:AtlasBank.Maui.ViewModels"
+             xmlns:models="clr-namespace:AtlasBank.Clients.Core.Models;assembly=AtlasBank.Clients.Core"
+             x:Class="AtlasBank.Maui.Views.CardsPage"
+             x:DataType="vm:CardsViewModel"
+             Title="Cards">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+
+            <Label Text="{Binding ErrorMessage}" Style="{StaticResource ErrorLabel}"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullOrEmptyConverter}}" />
+
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Account" Style="{StaticResource FieldLabel}" />
+                <Border Style="{StaticResource FieldBorder}">
+                    <Picker ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}"
+                            ItemDisplayBinding="{Binding AccountNumber}" Title="Choose an account" />
+                </Border>
+            </VerticalStackLayout>
+
+            <CollectionView ItemsSource="{Binding Cards}" SelectionMode="None"
+                            EmptyView="No cards on this account yet.">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Card">
+                        <Border Style="{StaticResource CardBorder}">
+                            <VerticalStackLayout Spacing="8">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                        <Label Text="{Binding MaskedCardNumber}" FontAttributes="Bold" Style="{StaticResource BodyLabel}" />
+                                        <Label Style="{StaticResource MutedLabel}">
+                                            <Label.Text>
+                                                <MultiBinding StringFormat="{}{0} · limit {1:C}">
+                                                    <Binding Path="Type" />
+                                                    <Binding Path="SpendingLimit" />
+                                                </MultiBinding>
+                                            </Label.Text>
+                                        </Label>
+                                    </VerticalStackLayout>
+                                    <Border Grid.Column="1" Style="{StaticResource BadgeBorder}"
+                                            BackgroundColor="{Binding Status, Converter={StaticResource StatusToColorConverter}}">
+                                        <Label Text="{Binding Status}" Style="{StaticResource BadgeLabel}" />
+                                    </Border>
+                                </Grid>
+                                <HorizontalStackLayout Spacing="16">
+                                    <Button Text="Freeze" Style="{StaticResource TextButton}"
+                                            IsVisible="{Binding Status, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=Active}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=BindingContext.FreezeCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    <Button Text="Unfreeze" Style="{StaticResource TextButton}"
+                                            IsVisible="{Binding Status, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=Frozen}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=BindingContext.UnfreezeCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    <Button Text="Edit limit" Style="{StaticResource TextButton}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=BindingContext.SelectForLimitEditCommand}"
+                                            CommandParameter="{Binding .}" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Border Style="{StaticResource CardBorder}" IsVisible="{Binding SelectedCard, Converter={StaticResource IsNotNullConverter}}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="EDIT SPENDING LIMIT" Style="{StaticResource SectionHeaderLabel}" />
+                    <Border Style="{StaticResource FieldBorder}">
+                        <Entry Text="{Binding EditSpendingLimitText}" Keyboard="Numeric" />
+                    </Border>
+                    <HorizontalStackLayout Spacing="12">
+                        <Button Text="Save" Style="{StaticResource SecondaryButton}" Command="{Binding SaveSpendingLimitCommand}" />
+                        <Button Text="Cancel" Style="{StaticResource TextButton}" Command="{Binding CancelLimitEditCommand}" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource CardBorder}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="ISSUE A NEW CARD" Style="{StaticResource SectionHeaderLabel}" />
+                    <Picker ItemsSource="{Binding CardTypes}" SelectedItem="{Binding IssueCardType}" Title="Card type" />
+                    <Border Style="{StaticResource FieldBorder}">
+                        <Entry Text="{Binding IssueSpendingLimitText}" Keyboard="Numeric" Placeholder="Spending limit" />
+                    </Border>
+                    <Button Text="Issue card" Style="{StaticResource SecondaryButton}" Command="{Binding IssueCardCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

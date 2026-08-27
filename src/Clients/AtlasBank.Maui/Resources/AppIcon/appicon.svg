@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- App icon: brand-teal square with a landmark/bank glyph — same lucide "Landmark"
+     silhouette the web sidebar uses (frontend/src/components/layout/Sidebar.tsx). -->
+<svg width="456" height="456" viewBox="0 0 456 456" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="456" height="456" fill="#0F6B5C" />
+    <g fill="#FFFFFF">
+        <polygon points="228,140 348,192 108,192" />
+        <rect x="100" y="192" width="256" height="16" />
+        <rect x="120" y="208" width="20" height="82" />
+        <rect x="174" y="208" width="20" height="82" />
+        <rect x="262" y="208" width="20" height="82" />
+        <rect x="316" y="208" width="20" height="82" />
+        <rect x="96" y="290" width="264" height="16" />
+        <rect x="84" y="306" width="288" height="14" />
+    </g>
+</svg>
