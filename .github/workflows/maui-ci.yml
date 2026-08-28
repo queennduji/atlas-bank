@@ -1,0 +1,47 @@
+name: AtlasBank.Maui
+
+# iOS/MacCatalyst not included — since I need a macOS runner with Xcode
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/Clients/**"
+      - "tests/Clients/**"
+      - ".github/workflows/maui-ci.yml"
+  pull_request:
+    paths:
+      - "src/Clients/**"
+      - "tests/Clients/**"
+      - ".github/workflows/maui-ci.yml"
+
+jobs:
+  test-clients-core:
+    name: Test AtlasBank.Clients.Core
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - run: dotnet test tests/Clients/AtlasBank.Clients.Core.Tests/AtlasBank.Clients.Core.Tests.csproj --configuration Release
+
+  build-maui:
+    name: Build AtlasBank.Maui (${{ matrix.framework }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - framework: net10.0-windows10.0.19041.0
+            workload: maui-windows
+          - framework: net10.0-android
+            workload: android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Install MAUI workload
+        run: dotnet workload install ${{ matrix.workload }} --skip-manifest-update
+      - name: Build
+        run: dotnet build src/Clients/AtlasBank.Maui/AtlasBank.Maui.csproj -f ${{ matrix.framework }} --configuration Release

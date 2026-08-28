@@ -3,6 +3,10 @@
   <Folder Name="/src/ApiGateway/">
     <Project Path="src/ApiGateway/AtlasBank.ApiGateway/AtlasBank.ApiGateway.csproj" />
   </Folder>
+  <Folder Name="/src/Clients/">
+    <Project Path="src/Clients/AtlasBank.Clients.Core/AtlasBank.Clients.Core.csproj" />
+    <Project Path="src/Clients/AtlasBank.Maui/AtlasBank.Maui.csproj" />
+  </Folder>
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/AccountService/">
     <Project Path="src/Services/AccountService/AtlasBank.AccountService/AtlasBank.AccountService.csproj" />
@@ -30,6 +34,9 @@
     <Project Path="src/Shared/AtlasBank.Shared/AtlasBank.Shared.csproj" />
   </Folder>
   <Folder Name="/tests/" />
+  <Folder Name="/tests/Clients/">
+    <Project Path="tests/Clients/AtlasBank.Clients.Core.Tests/AtlasBank.Clients.Core.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/AccountService/">
     <Project Path="tests/AccountService/AtlasBank.AccountService.IntegrationTests/AtlasBank.AccountService.IntegrationTests.csproj" />
   </Folder>

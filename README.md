@@ -28,11 +28,20 @@ async domain events over RabbitMQ, database-per-service, and centralized structu
 - **Docker Compose** for local orchestration
 - **xUnit**, **FluentAssertions**, and **Testcontainers** (real PostgreSQL containers) for integration tests
 
-## Frontend
+## Clients
 
-A React + TypeScript client lives in [`frontend/`](frontend) — sign up, open accounts,
-move money, issue cards, and pull statements against the gateway. See
-[`frontend/README.md`](frontend/README.md) for setup.
+Two clients talk to the same API Gateway — sign up, open accounts, move money, issue cards,
+and pull statements:
+
+- **[`frontend/`](frontend)** — React + TypeScript, for the browser. See
+  [`frontend/README.md`](frontend/README.md).
+- **[`src/Clients/AtlasBank.Maui/`](src/Clients/AtlasBank.Maui)** — .NET MAUI, for
+  Android/iOS/Mac Catalyst/Windows. OAuth2 Authorization Code + PKCE against Keycloak (no
+  embedded WebView, no password ever touching the app's own code), with its API client, DTOs,
+  and auth state machine factored into a UI-framework-agnostic library
+  ([`AtlasBank.Clients.Core`](src/Clients/AtlasBank.Clients.Core)) that a planned WPF client
+  will reuse rather than duplicate. See
+  [`src/Clients/AtlasBank.Maui/README.md`](src/Clients/AtlasBank.Maui/README.md).
 
 ## Getting started
 
