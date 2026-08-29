@@ -6,7 +6,9 @@ using System.Text.Json;
 namespace AtlasBank.Clients.Core.Api;
 
 /// <summary>
-/// Typed client for the AtlasBank API Gateway. 
+/// Typed client for the AtlasBank API Gateway — this file has the shared HTTP plumbing
+/// (auth header, JSON, error mapping); the actual endpoint calls live in the sibling
+/// partial files split by resource (AtlasApiClient.Accounts.cs, .Cards.cs, etc.).
 /// </summary>
 public sealed partial class AtlasApiClient
 {
