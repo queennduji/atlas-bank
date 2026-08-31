@@ -9,6 +9,10 @@ async domain events over RabbitMQ, database-per-service, and centralized structu
 
 ![AtlasBank architecture](docs/architecture.svg)
 
+For the request-flow sequence diagram (idempotency + compensating-transaction
+reversal) and the full bounded-context breakdown, see
+[`docs/architecture.md`](docs/architecture.md).
+
 ## Services
 
 | Service | Responsibility | Talks to |
