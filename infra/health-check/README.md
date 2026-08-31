@@ -9,8 +9,27 @@ box's resource health.
 Runs as a host-level systemd service (`atlas-health.service`), not in a
 container, so `os.getloadavg()` / `shutil.disk_usage()` / `/proc/meminfo`
 reflect true host state. nginx (which does run in a container) reaches it
-via `host.docker.internal` — see the `extra_hosts` entry added to the
-`nginx` service in `docker-compose.prod.yml`.
+via the `extra_hosts` entry on the `nginx` service in
+`docker-compose.prod.yml` — that entry points `host.docker.internal` at
+`atlas-net`'s actual bridge gateway IP directly, not Docker's built-in
+`host-gateway` alias, which resolves to the *default* bridge's gateway
+regardless of which network the container is actually on and produced a
+"Host is unreachable" error here (see the comment on that entry for the
+full story, including how to re-derive the IP if the network is ever
+recreated).
+
+Getting from nginx to this port also needs a host firewall exception —
+Oracle's default OCI iptables ruleset only allows new inbound connections
+on 22/80/443, so a rule scoped to the bridge subnet is required:
+
+```bash
+sudo iptables -I INPUT 7 -p tcp -s 172.18.0.0/16 --dport 8099 -m state --state NEW -j ACCEPT
+sudo netfilter-persistent save
+```
+
+(Adjust the subnet and insert position to match `atlas-net`'s actual
+gateway/rule order if they've changed — check with
+`sudo iptables -S INPUT`.)
 
 ## One-time setup on the VM
 

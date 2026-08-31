@@ -1,4 +1,4 @@
-<svg viewBox="0 0 1200 620" xmlns="http://www.w3.org/2000/svg" font-family="'Source Sans 3', Arial, sans-serif">
+<svg viewBox="0 0 1200 740" xmlns="http://www.w3.org/2000/svg" font-family="'Source Sans 3', Arial, sans-serif">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#64a6bd" />
@@ -6,12 +6,18 @@
     <marker id="arrowDim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#5b6b7d" />
     </marker>
+    <marker id="arrowGrpc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#83b692" />
+    </marker>
+    <marker id="arrowMq" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#fcb07e" />
+    </marker>
   </defs>
 
-  <rect width="1200" height="620" fill="#1c2735" />
+  <rect width="1200" height="740" fill="#1c2735" />
 
   <text x="40" y="52" fill="#fbf7fb" font-size="34" font-weight="700">AtlasBank</text>
-  <text x="40" y="80" fill="#8fa3b3" font-size="17">Event-driven banking microservices &#8212; .NET, Docker, RabbitMQ, Keycloak</text>
+  <text x="40" y="80" fill="#8fa3b3" font-size="17">Event-driven banking microservices &#8212; .NET, Docker, RabbitMQ, Keycloak, PostgreSQL</text>
 
   <!-- Client -->
   <rect x="40" y="120" width="150" height="56" rx="8" fill="#2e4057" stroke="#64a6bd" stroke-width="1.5" />
@@ -31,66 +37,89 @@
   <!-- Gateway <-> Keycloak -->
   <line x1="516" y1="148" x2="454" y2="148" stroke="#fcb07e" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)" />
 
-  <!-- Services row -->
-  <!-- Customer, Account, Transaction, Ledger, Notification -->
+  <!-- Gateway -> services (single trunk, not 7 crossing lines) -->
+  <line x1="355" y1="176" x2="355" y2="196" stroke="#5b6b7d" stroke-width="1.5" marker-end="url(#arrowDim)" />
+  <text x="368" y="200" fill="#8fa3b3" font-size="12">routes to all 7 services (JWT-checked, per-IP rate limited)</text>
+
+  <!-- Services row 1 -->
   <g font-size="16" font-weight="600">
-    <rect x="40"  y="260" width="205" height="60" rx="8" fill="#243447" stroke="#83b692" stroke-width="1.5" />
-    <text x="142" y="296" fill="#fbf7fb" text-anchor="middle">Customer Service</text>
+    <rect x="30"  y="210" width="270" height="60" rx="8" fill="#243447" stroke="#83b692" stroke-width="1.5" />
+    <text x="165" y="246" fill="#fbf7fb" text-anchor="middle">Customer Service</text>
 
-    <rect x="285" y="260" width="205" height="60" rx="8" fill="#243447" stroke="#83b692" stroke-width="1.5" />
-    <text x="387" y="296" fill="#fbf7fb" text-anchor="middle">Account Service</text>
+    <rect x="320" y="210" width="270" height="60" rx="8" fill="#243447" stroke="#83b692" stroke-width="1.5" />
+    <text x="455" y="246" fill="#fbf7fb" text-anchor="middle">Account Service</text>
 
-    <rect x="530" y="260" width="205" height="60" rx="8" fill="#243447" stroke="#83b692" stroke-width="1.5" />
-    <text x="632" y="296" fill="#fbf7fb" text-anchor="middle">Transaction Service</text>
+    <rect x="610" y="210" width="270" height="60" rx="8" fill="#243447" stroke="#83b692" stroke-width="1.5" />
+    <text x="745" y="246" fill="#fbf7fb" text-anchor="middle">Card Service</text>
 
-    <rect x="775" y="260" width="205" height="60" rx="8" fill="#243447" stroke="#83b692" stroke-width="1.5" />
-    <text x="877" y="296" fill="#fbf7fb" text-anchor="middle">Ledger Service</text>
-
-    <rect x="1020" y="260" width="145" height="60" rx="8" fill="#243447" stroke="#83b692" stroke-width="1.5" />
-    <text x="1092" y="289" fill="#fbf7fb" text-anchor="middle">Notification</text>
-    <text x="1092" y="307" fill="#fbf7fb" text-anchor="middle">Service</text>
+    <rect x="900" y="210" width="270" height="60" rx="8" fill="#243447" stroke="#83b692" stroke-width="1.5" />
+    <text x="1035" y="246" fill="#fbf7fb" text-anchor="middle">Transaction Service</text>
   </g>
 
-  <!-- Gateway -> services -->
-  <line x1="387" y1="176" x2="387" y2="256" stroke="#5b6b7d" stroke-width="1.5" marker-end="url(#arrowDim)" />
-  <line x1="500" y1="176" x2="620" y2="256" stroke="#5b6b7d" stroke-width="1.5" marker-end="url(#arrowDim)" />
-  <line x1="600" y1="176" x2="855" y2="256" stroke="#5b6b7d" stroke-width="1.5" marker-end="url(#arrowDim)" />
-  <line x1="620" y1="176" x2="1080" y2="256" stroke="#5b6b7d" stroke-width="1.5" marker-end="url(#arrowDim)" />
+  <!-- Account <-> Customer (gRPC) -->
+  <line x1="320" y1="240" x2="304" y2="240" stroke="#83b692" stroke-width="1.5" marker-end="url(#arrowGrpc)" />
+  <!-- Card -> Account (gRPC read) -->
+  <line x1="610" y1="240" x2="594" y2="240" stroke="#83b692" stroke-width="1.5" marker-end="url(#arrowGrpc)" />
 
-  <!-- Account <-> Customer -->
-  <line x1="285" y1="290" x2="249" y2="290" stroke="#83b692" stroke-width="1.5" marker-end="url(#arrow)" />
+  <!-- Services row 2 -->
+  <g font-size="16" font-weight="600">
+    <rect x="165" y="340" width="270" height="60" rx="8" fill="#243447" stroke="#83b692" stroke-width="1.5" />
+    <text x="300" y="376" fill="#fbf7fb" text-anchor="middle">Statement Service</text>
+
+    <rect x="465" y="340" width="270" height="60" rx="8" fill="#243447" stroke="#83b692" stroke-width="1.5" />
+    <text x="600" y="376" fill="#fbf7fb" text-anchor="middle">Ledger Service</text>
+
+    <rect x="765" y="340" width="270" height="60" rx="8" fill="#243447" stroke="#83b692" stroke-width="1.5" />
+    <text x="900" y="370" fill="#fbf7fb" text-anchor="middle">Notification</text>
+    <text x="900" y="388" fill="#fbf7fb" text-anchor="middle">Service</text>
+  </g>
+
+  <!-- gRPC read fan-out notes (drawn as text, not crossing arrows, to stay legible) -->
+  <text x="175" y="415" fill="#9fc2ab" font-size="11">gRPC reads: Account, Customer, Transaction</text>
+  <text x="775" y="415" fill="#9fc2ab" font-size="11">gRPC reads: Account, Customer</text>
 
   <!-- RabbitMQ -->
-  <rect x="530" y="380" width="205" height="56" rx="8" fill="#3a2e1c" stroke="#fcb07e" stroke-width="2" />
-  <text x="632" y="410" fill="#fbf7fb" font-size="16" font-weight="700" text-anchor="middle">RabbitMQ</text>
-  <text x="632" y="427" fill="#e0c9a6" font-size="11" text-anchor="middle">async events</text>
+  <rect x="497" y="470" width="210" height="56" rx="8" fill="#3a2e1c" stroke="#fcb07e" stroke-width="2" />
+  <text x="602" y="500" fill="#fbf7fb" font-size="16" font-weight="700" text-anchor="middle">RabbitMQ</text>
+  <text x="602" y="517" fill="#e0c9a6" font-size="11" text-anchor="middle">async domain events</text>
 
-  <line x1="632" y1="320" x2="632" y2="376" stroke="#fcb07e" stroke-width="1.5" marker-end="url(#arrow)" />
-  <line x1="700" y1="380" x2="850" y2="322" stroke="#fcb07e" stroke-width="1.5" marker-end="url(#arrow)" />
-  <line x1="735" y1="400" x2="1080" y2="322" stroke="#fcb07e" stroke-width="1.5" marker-end="url(#arrow)" />
+  <!-- Transaction publishes, routed right of Notification's edge (x=1035), then
+       below row 2 entirely, so the line never crosses either service box -->
+  <polyline points="1050,270 1050,420 707,490" fill="none" stroke="#fcb07e" stroke-width="1.5" marker-end="url(#arrowMq)" />
+  <text x="1055" y="320" fill="#e0c9a6" font-size="11" text-anchor="end">TransactionCompletedEvent</text>
+  <!-- Card publishes, routed straight down the narrow gap between Ledger and
+       Notification (735-765), then below row 2, same reasoning -->
+  <polyline points="748,270 748,400 707,470" fill="none" stroke="#fcb07e" stroke-width="1.5" marker-end="url(#arrowMq)" />
+  <text x="753" y="320" fill="#e0c9a6" font-size="11">CardIssuedEvent</text>
 
-  <!-- SQL Server -->
-  <rect x="40" y="480" width="940" height="56" rx="8" fill="#243447" stroke="#64a6bd" stroke-width="1.5" />
-  <text x="510" y="510" fill="#fbf7fb" font-size="16" font-weight="700" text-anchor="middle">SQL Server</text>
-  <text x="510" y="527" fill="#9fb4c2" font-size="11" text-anchor="middle">database-per-service</text>
+  <!-- RabbitMQ -> Ledger (consume) -->
+  <line x1="580" y1="470" x2="555" y2="400" stroke="#fcb07e" stroke-width="1.5" marker-end="url(#arrowMq)" />
+  <!-- RabbitMQ -> Notification (consume) -->
+  <line x1="690" y1="470" x2="870" y2="400" stroke="#fcb07e" stroke-width="1.5" marker-end="url(#arrowMq)" />
 
-  <line x1="142" y1="320" x2="142" y2="476" stroke="#5b6b7d" stroke-width="1.5" marker-end="url(#arrowDim)" />
-  <line x1="387" y1="320" x2="387" y2="476" stroke="#5b6b7d" stroke-width="1.5" marker-end="url(#arrowDim)" />
-  <line x1="632" y1="320" x2="632" y2="476" stroke="#5b6b7d" stroke-width="1.5" marker-end="url(#arrowDim)" style="display:none" />
-  <line x1="700" y1="436" x2="620" y2="476" stroke="#5b6b7d" stroke-width="1.5" marker-end="url(#arrowDim)" />
-  <line x1="877" y1="320" x2="877" y2="476" stroke="#5b6b7d" stroke-width="1.5" marker-end="url(#arrowDim)" />
+  <!-- PostgreSQL -->
+  <rect x="30" y="580" width="1140" height="56" rx="8" fill="#243447" stroke="#64a6bd" stroke-width="1.5" />
+  <text x="600" y="610" fill="#fbf7fb" font-size="16" font-weight="700" text-anchor="middle">PostgreSQL</text>
+  <text x="600" y="627" fill="#9fb4c2" font-size="11" text-anchor="middle">database-per-service &#8212; 7 databases, one per service above</text>
+
+  <!-- Anchored under the left side (below Customer/Statement) rather than dead
+       center, so it doesn't run straight through the RabbitMQ box above it -->
+  <line x1="250" y1="400" x2="250" y2="576" stroke="#5b6b7d" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrowDim)" />
 
   <!-- Footer badges -->
   <g font-size="13" font-weight="600">
-    <rect x="40" y="560" width="270" height="36" rx="18" fill="#243447" stroke="#83b692" stroke-width="1" />
-    <text x="175" y="583" fill="#c8e6d3" text-anchor="middle">Serilog &#8594; Seq structured logging</text>
+    <rect x="30" y="660" width="270" height="36" rx="18" fill="#243447" stroke="#83b692" stroke-width="1" />
+    <text x="165" y="683" fill="#c8e6d3" text-anchor="middle">Serilog &#8594; Seq structured logging</text>
 
-    <rect x="330" y="560" width="230" height="36" rx="18" fill="#243447" stroke="#64a6bd" stroke-width="1" />
-    <text x="445" y="583" fill="#bfe0ee" text-anchor="middle">Dockerized &#8226; docker-compose</text>
+    <rect x="320" y="660" width="230" height="36" rx="18" fill="#243447" stroke="#64a6bd" stroke-width="1" />
+    <text x="435" y="683" fill="#bfe0ee" text-anchor="middle">Dockerized &#8226; docker-compose</text>
 
-    <rect x="580" y="560" width="220" height="36" rx="18" fill="#243447" stroke="#fcb07e" stroke-width="1" />
-    <text x="690" y="583" fill="#f6dcbe" text-anchor="middle">Per-IP rate limiting &#8226; CORS</text>
+    <rect x="570" y="660" width="220" height="36" rx="18" fill="#243447" stroke="#fcb07e" stroke-width="1" />
+    <text x="680" y="683" fill="#f6dcbe" text-anchor="middle">Per-IP rate limiting &#8226; CORS</text>
+
+    <rect x="810" y="660" width="230" height="36" rx="18" fill="#243447" stroke="#83b692" stroke-width="1" />
+    <text x="925" y="683" fill="#c8e6d3" text-anchor="middle">gRPC &#8226; sync service-to-service</text>
   </g>
 
-  <text x="1160" y="590" fill="#5b6b7d" font-size="13" text-anchor="end">github.com/queennduji/atlas-bank</text>
+  <text x="1160" y="720" fill="#5b6b7d" font-size="13" text-anchor="end">github.com/queennduji/atlas-bank</text>
 </svg>
