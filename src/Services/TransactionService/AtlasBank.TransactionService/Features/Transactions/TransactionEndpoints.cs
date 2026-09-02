@@ -24,7 +24,7 @@ public static class TransactionEndpoints
 
     // An optional client-supplied Idempotency-Key (Stripe-style header) lets a retried
     // request for the same logical deposit/withdrawal/transfer be answered with the
-    // original result instead of being processed a second time — e.g. a network blip
+    // original result instead of being processed a second time – e.g. a network blip
     // loses the response but not the request, and the caller safely retries with the
     // same key. No key means no idempotency protection, same as before this existed.
     private static async Task<Transaction?> FindByIdempotencyKeyAsync(

@@ -1,22 +1,22 @@
-# Production deployment (Oracle Cloud VM). Only nginx is published to the host —
+# Production deployment (Oracle Cloud VM). Only nginx is published to the host –
 # everything else (Postgres, RabbitMQ, Seq, Keycloak, every service) is reachable
 # solely over the internal Docker network. nginx terminates HTTPS for the three
 # public domains and reverse-proxies to the frontend, gateway, and Keycloak.
 #
 # Run with: docker compose -f docker-compose.prod.yml up -d --build
-# Requires a `.env` file alongside this one — see .env.production.example.
+# Requires a `.env` file alongside this one – see .env.production.example.
 # First-time cert setup: bash nginx/init-letsencrypt.sh (see that file).
 #
 # Note: Keycloak still runs in `start-dev` mode here, same as local dev. A fully
 # hardened production Keycloak deployment would use `start` with its stricter
-# defaults — a reasonable follow-up, not done here to keep this deployment close
+# defaults – a reasonable follow-up, not done here to keep this deployment close
 # to what's already been tested end-to-end.
 
 services:
 
   # nginx replaces Caddy as the TLS-terminating reverse proxy. Caddy's Go TLS
   # stack was found to throw a fatal internal_error on a specific real-world
-  # ClientHello shape sent by modern Chrome/Edge — reproduced via packet
+  # ClientHello shape sent by modern Chrome/Edge – reproduced via packet
   # capture and byte-exact replay against this server, confirmed across two
   # Caddy versions and even a bare-minimum Caddy config with no custom
   # Caddyfile. nginx terminates TLS via OpenSSL instead, which isn't exposed
@@ -32,22 +32,22 @@ services:
       - certbot-conf:/etc/letsencrypt
       - certbot-www:/var/www/certbot
       # Bind-mounted from CommerceCore's own repo (a separate project sharing this VM)
-      # rather than anything owned by this repo — its server blocks (see that repo's
+      # rather than anything owned by this repo – its server blocks (see that repo's
       # deploy/nginx/conf.d/) get included via nginx.conf's `include /etc/nginx/conf.d/*.conf;`.
       # This is the only place this repo needs to know CommerceCore exists at all.
       - ../commercecore/deploy/nginx/conf.d:/etc/nginx/conf.d:ro
-    # CommerceCore's containers (cc-api-gateway, minio) live on their own network —
+    # CommerceCore's containers (cc-api-gateway, minio) live on their own network –
     # joining it is what lets this nginx reverse-proxy to them by container name.
     networks:
       - atlas-net
       - commercecore
     # Lets nginx reach the host-level atlas-health systemd service (see
-    # infra/health-check/) for the /_health/system endpoint — that service
+    # infra/health-check/) for the /_health/system endpoint – that service
     # deliberately runs outside Docker so its stats reflect true host state.
     #
     # Docker's built-in "host-gateway" alias resolves to the *default* bridge
     # network's gateway (172.17.0.1) regardless of which network the
-    # container actually runs on — confirmed the hard way: nginx sits on
+    # container actually runs on – confirmed the hard way: nginx sits on
     # atlas-net (a custom bridge, since this box also runs a second project's
     # containers on their own network), whose real gateway is 172.18.0.1, and
     # "host-gateway" produced a "Host is unreachable" trying 172.17.0.1
@@ -76,7 +76,7 @@ services:
       - atlas-net
 
   seq:
-    # Pinned — Seq's `latest` tag has broken past deployments by shipping a
+    # Pinned – Seq's `latest` tag has broken past deployments by shipping a
     # stricter first-run auth requirement with no warning. 2026.1 is the
     # version this whole stack was actually built and tested against.
     image: datalust/seq:2026.1
@@ -120,7 +120,7 @@ services:
       # or the internal Docker network (backend services fetching metadata).
       KC_HOSTNAME: auth.atlasbank.dev
       KC_HOSTNAME_STRICT_HTTPS: "true"
-      # Caddy terminates TLS and forwards plain HTTP internally — this tells
+      # Caddy terminates TLS and forwards plain HTTP internally – this tells
       # Keycloak to trust Caddy's X-Forwarded-* headers so it still reconstructs
       # URLs as https://auth.atlasbank.dev instead of thinking it's plain HTTP.
       KC_PROXY: edge
@@ -201,7 +201,7 @@ services:
       - ReverseProxy__Clusters__transactions-cluster__Destinations__primary__Address=http://transaction-service:8080
       - ReverseProxy__Clusters__ledger-cluster__Destinations__primary__Address=http://ledger-service:8080
       # Adds the production frontend origin on top of the localhost ones already
-      # in appsettings.json (harmless to keep — nothing in production runs on
+      # in appsettings.json (harmless to keep – nothing in production runs on
       # the server's own localhost that would use them).
       - Cors__AllowedOrigins__3=https://atlasbank.dev
     healthcheck:
@@ -232,7 +232,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      # Baked into the JS bundle at build time — must be the real public URLs.
+      # Baked into the JS bundle at build time – must be the real public URLs.
       args:
         VITE_GATEWAY_URL: https://api.atlasbank.dev
         VITE_KEYCLOAK_URL: https://auth.atlasbank.dev
@@ -462,7 +462,7 @@ volumes:
 networks:
   atlas-net:
     driver: bridge
-  # Owned by CommerceCore's own compose stack (that project creates it, not this one) —
+  # Owned by CommerceCore's own compose stack (that project creates it, not this one) –
   # `external: true` just lets this nginx join a network it doesn't own, to reverse-proxy
   # to its containers by name. See the volume mount on the nginx service above.
   commercecore:

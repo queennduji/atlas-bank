@@ -19,7 +19,7 @@ public partial class LoginViewModel : ViewModelBase
         _navigation = navigation;
     }
 
-    /// <summary>Called from LoginPage.OnAppearing — if there's a saved session from last time
+    /// <summary>Called from LoginPage.OnAppearing – if there's a saved session from last time
     /// and it's still (or can be) valid, skip straight past the login screen instead of
     /// making the user tap "Sign in" every time.</summary>
     public async Task CheckForExistingSessionAsync()

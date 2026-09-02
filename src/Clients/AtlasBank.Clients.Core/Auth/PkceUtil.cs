@@ -6,7 +6,7 @@ namespace AtlasBank.Clients.Core.Auth;
 /// <summary>
 /// RFC 7636 Proof Key for Code Exchange. Used instead of Keycloak's Resource Owner Password
 /// grant (which the web client's directAccessGrantsEnabled flag still allows) so the user's
-/// password never passes through this app's code — sign-in happens in the real browser, and
+/// password never passes through this app's code – sign-in happens in the real browser, and
 /// PKCE is what proves the token exchange afterward came from the same client that started it.
 /// </summary>
 public static class PkceUtil

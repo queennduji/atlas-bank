@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace AtlasBank.Maui.Converters;
 
-/// <summary>True when the bound reference isn't null — for showing a panel only once
+/// <summary>True when the bound reference isn't null – for showing a panel only once
 /// something (e.g. CardsViewModel.SelectedCard) has been picked.</summary>
 public sealed class IsNotNullConverter : IValueConverter
 {

@@ -18,7 +18,7 @@ public static class GrpcResilienceExtensions
     /// <summary>
     /// Applies a Polly resilience pipeline (timeout, retry, circuit breaker) tuned for
     /// internal service-to-service gRPC calls on the same Docker network, rather than
-    /// .NET's stock <c>AddStandardResilienceHandler()</c> defaults — those are sized for
+    /// .NET's stock <c>AddStandardResilienceHandler()</c> defaults – those are sized for
     /// calls to third-party APIs across the internet (10s per attempt, 30s total,
     /// a circuit breaker that needs 100 requests before it can trip) and would be far too
     /// slow to notice a genuinely stuck downstream call, or too insensitive to ever open
@@ -27,7 +27,7 @@ public static class GrpcResilienceExtensions
     /// <param name="allowRetry">
     /// Set to false for a client whose RPCs include a non-idempotent write (e.g. a
     /// Credit/Debit balance change). Retrying a call whose response was lost after the
-    /// write already landed would silently apply it twice — timeout and circuit breaker
+    /// write already landed would silently apply it twice – timeout and circuit breaker
     /// are always safe regardless, but automatic retry is only safe for calls that are
     /// reads or are otherwise idempotent.
     /// </param>
@@ -45,7 +45,7 @@ public static class GrpcResilienceExtensions
         }
         else
         {
-            // AddStandardResilienceHandler's retry strategy can't be disabled — its
+            // AddStandardResilienceHandler's retry strategy can't be disabled – its
             // MaxRetryAttempts option requires a value >= 1 and throws
             // OptionsValidationException at startup otherwise (confirmed the hard way).
             // A client carrying a non-idempotent write instead gets a hand-built pipeline

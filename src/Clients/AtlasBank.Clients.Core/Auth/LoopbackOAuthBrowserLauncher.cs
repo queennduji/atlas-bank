@@ -6,14 +6,14 @@ namespace AtlasBank.Clients.Core.Auth;
 
 /// <summary>
 /// Desktop OAuth redirect capture: opens the authorization URL in the system's default
-/// browser, then waits for Keycloak's redirect to hit a tiny local HTTP listener — no
+/// browser, then waits for Keycloak's redirect to hit a tiny local HTTP listener – no
 /// custom URL scheme needed on Windows. Pure BCL, no UI framework dependency, so
 /// AtlasBank.Maui's Windows target and AtlasBank.Wpf can both use it unchanged.
 /// </summary>
 public sealed class LoopbackOAuthBrowserLauncher : IOAuthBrowserLauncher, IDisposable
 {
     // Fixed port rather than an OS-assigned one, on purpose: Keycloak matches redirect_uri
-    // as an exact string, and "http://127.0.0.1:*/..." isn't a pattern it understands — the
+    // as an exact string, and "http://127.0.0.1:*/..." isn't a pattern it understands – the
     // port has to be part of what's registered in keycloak/realm-export.json. Downside is
     // sign-in breaks if something else already has this port; acceptable for a demo app.
     public const int DefaultPort = 51739;

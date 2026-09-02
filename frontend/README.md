@@ -1,6 +1,6 @@
 # AtlasBank Frontend
 
-A React + TypeScript client for AtlasBank — sign up, open accounts, move money, issue
+A React + TypeScript client for AtlasBank – sign up, open accounts, move money, issue
 cards, and pull statements against the real gateway/microservices backend.
 
 ## Stack
@@ -14,7 +14,7 @@ cards, and pull statements against the real gateway/microservices backend.
 
 ## Prerequisites
 
-The backend needs to be running — from the repo root:
+The backend needs to be running – from the repo root:
 
 ```bash
 docker-compose up --build
@@ -23,21 +23,21 @@ docker-compose up --build
 This brings up Keycloak (`localhost:8080`), the API Gateway (`localhost:5000`), and the
 core services. The `atlas-bank-app` Keycloak client is already configured (see
 `keycloak/realm-export.json`) with `http://localhost:3000` as an allowed redirect/origin,
-and the gateway's CORS policy already allows `localhost:3000` — so nothing on the backend
+and the gateway's CORS policy already allows `localhost:3000` – so nothing on the backend
 needs to change to run this frontend locally.
 
 ## Getting started
 
 Two ways to run it, pick whichever fits what you're doing:
 
-**Dev server (hot reload)** — best while actively changing code:
+**Dev server (hot reload)** – best while actively changing code:
 
 ```bash
 npm install
 npm run dev
 ```
 
-**Docker (production-style build)** — no Node needed locally; matches how the rest of
+**Docker (production-style build)** – no Node needed locally; matches how the rest of
 the stack runs. `docker-compose up --build` from the repo root builds and starts this
 along with everything else, or build just this service:
 
@@ -45,11 +45,11 @@ along with everything else, or build just this service:
 docker-compose up --build frontend
 ```
 
-Either way it's on `http://localhost:3000` (fixed — matches the Keycloak redirect URI).
+Either way it's on `http://localhost:3000` (fixed – matches the Keycloak redirect URI).
 The Docker build serves the static `dist/` output via nginx, with client-side routes
 falling back to `index.html` (see `nginx.conf`) so deep links like `/dashboard` work on
 refresh. Note that `VITE_*` vars are baked into the JS bundle at *build* time for the
-Docker path (see `Dockerfile`'s `ARG`s / `docker-compose.yml`'s `build.args`) — changing
+Docker path (see `Dockerfile`'s `ARG`s / `docker-compose.yml`'s `build.args`) – changing
 `.env` alone won't affect an already-built image, you'd need to rebuild.
 
 ## Configuration
@@ -79,7 +79,7 @@ src/
 `AccountService`, `TransactionService`, and `CustomerService` serialize their enums as
 raw integers (no `JsonStringEnumConverter` registered), while `CardService` and
 `StatementService` serialize theirs as strings. `src/api/types.ts` documents this and
-maps the numeric ones back to labels — worth standardizing on the backend at some point.
+maps the numeric ones back to labels – worth standardizing on the backend at some point.
 
 ## Build
 

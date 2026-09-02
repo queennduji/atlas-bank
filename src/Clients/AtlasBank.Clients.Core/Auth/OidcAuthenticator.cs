@@ -6,7 +6,7 @@ namespace AtlasBank.Clients.Core.Auth;
 
 /// <summary>
 /// Runs the Authorization Code + PKCE flow against Keycloak and keeps the tokens fresh
-/// afterward. Every AtlasBank client shares this class as-is — only
+/// afterward. Every AtlasBank client shares this class as-is – only
 /// <see cref="IOAuthBrowserLauncher"/> (how to pop the browser) and <see cref="ITokenStore"/>
 /// (where tokens are kept) change per platform.
 /// </summary>
@@ -41,7 +41,7 @@ public sealed class OidcAuthenticator
 
     /// <summary>Loads a previously saved session, refreshing it if its access token is stale.
     /// Returns null (rather than throwing) if there's nothing to restore or the refresh token
-    /// itself has expired — callers treat that the same as "never signed in".</summary>
+    /// itself has expired – callers treat that the same as "never signed in".</summary>
     public async Task<TokenSet?> TryRestoreSessionAsync(CancellationToken ct = default)
     {
         var saved = await _tokenStore.LoadAsync().ConfigureAwait(false);
@@ -62,7 +62,7 @@ public sealed class OidcAuthenticator
         }
         catch (AuthException)
         {
-            // Refresh token expired or was revoked server-side — the saved session is dead.
+            // Refresh token expired or was revoked server-side – the saved session is dead.
             await SignOutAsync().ConfigureAwait(false);
             return null;
         }
@@ -245,7 +245,7 @@ public sealed class OidcAuthenticator
             ?? throw new AuthException("Could not load Keycloak's discovery document.");
 
         // KC_HOSTNAME pins this realm to always claim "localhost:8080" in its endpoints, no
-        // matter who asked — fine for the web app, broken for the Android emulator, where
+        // matter who asked – fine for the web app, broken for the Android emulator, where
         // "localhost" means the emulator itself, not the host machine. Trust the paths
         // Keycloak gave us, but always talk to the host we were actually configured with.
         _discovery = RewriteToConfiguredAuthority(document);
@@ -269,7 +269,7 @@ public sealed class OidcAuthenticator
     private TokenSet ToTokenSet(TokenResponse response) => new()
     {
         AccessToken = response.AccessToken,
-        // Keycloak rotates the refresh token on every refresh, but not every grant does —
+        // Keycloak rotates the refresh token on every refresh, but not every grant does –
         // keep the old one if this response didn't send a new one.
         RefreshToken = response.RefreshToken ?? _current?.RefreshToken,
         IdToken = response.IdToken ?? _current?.IdToken,

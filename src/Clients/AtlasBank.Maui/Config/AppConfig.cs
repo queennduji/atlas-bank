@@ -16,12 +16,12 @@ public static class AppConfig
     public const string KeycloakAuthority = "http://localhost:8080/realms/atlas-bank";
 #endif
 
-    /// <summary>Matches the "atlas-bank-maui" client in keycloak/realm-export.json — kept
+    /// <summary>Matches the "atlas-bank-maui" client in keycloak/realm-export.json – kept
     /// separate from the web's "atlas-bank-app" so a stolen mobile refresh token can be
     /// revoked without logging every browser session out too.</summary>
     public const string KeycloakClientId = "atlas-bank-maui";
 
-    /// <summary>URL scheme mobile registers to catch Keycloak's redirect — see
+    /// <summary>URL scheme mobile registers to catch Keycloak's redirect – see
     /// Platforms/Android/OAuthCallbackActivity.cs and the iOS/MacCatalyst Info.plist entries.</summary>
     public const string MobileRedirectScheme = "atlasbank";
 }

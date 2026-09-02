@@ -27,7 +27,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<DepositValidator>();
 // writes, so it gets timeout + circuit breaker but NOT automatic retry: if a Credit
 // call's response is lost after the write already landed, blindly retrying it would
 // apply the credit twice. (The other services' AccountGrpcServiceClient registrations
-// only ever call GetAccount and get the full pipeline including retry — see their
+// only ever call GetAccount and get the full pipeline including retry – see their
 // Program.cs for why that's safe there.)
 builder.Services.AddGrpcClient<AccountGrpcService.AccountGrpcServiceClient>(o =>
 {

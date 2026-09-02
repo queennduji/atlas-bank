@@ -23,7 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           type={type}
           onWheel={(e) => {
             // Browsers silently change a focused number input's value when the
-            // page is scrolled (by `step`, here 0.01) — a user scrolling right
+            // page is scrolled (by `step`, here 0.01) – a user scrolling right
             // after typing an amount, with the cursor still over the field, can
             // submit a different figure than they typed without ever noticing.
             // Blurring drops focus so the scroll just scrolls the page instead.

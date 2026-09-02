@@ -22,7 +22,7 @@ builder.Services.AddDbContext<AccountDbContext>(options =>
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAccountValidator>();
 
-// Read-only RPC (GetCustomerByKeycloakId) — safe for the full standard resilience
+// Read-only RPC (GetCustomerByKeycloakId) – safe for the full standard resilience
 // pipeline (timeout, retry with backoff, circuit breaker) since retrying a read can't
 // double-apply anything.
 builder.Services.AddGrpcClient<CustomerGrpcService.CustomerGrpcServiceClient>(o =>
@@ -47,7 +47,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddGrpc();
 builder.Services.AddGlobalExceptionHandling();
 
-// Checks real DB connectivity, not just "the process is alive" — a plain liveness
+// Checks real DB connectivity, not just "the process is alive" – a plain liveness
 // check would have reported this service as fine even while its database was
 // silently never migrated (the bug this replaces the risk of hitting again).
 builder.Services.AddHealthChecks()

@@ -1,13 +1,13 @@
 services:
 
   seq:
-    # Pinned — Seq's `latest` tag has broken past deployments by shipping a
+    # Pinned – Seq's `latest` tag has broken past deployments by shipping a
     # stricter first-run auth requirement with no warning. 2026.1 is the
     # version this whole stack was actually built and tested against.
     image: datalust/seq:2026.1
     environment:
       ACCEPT_EULA: Y
-      # Newer Seq versions require an explicit auth decision on first run —
+      # Newer Seq versions require an explicit auth decision on first run –
       # without it the container crash-loops. No auth needed for local dev.
       SEQ_FIRSTRUN_NOAUTHENTICATION: "true"
     ports:
@@ -40,7 +40,7 @@ services:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
       # Without a fixed hostname, Keycloak reports whatever host:port the caller used to
-      # reach it as the token issuer — fine for the browser (localhost:8080) but wrong
+      # reach it as the token issuer – fine for the browser (localhost:8080) but wrong
       # when backend services fetch OIDC metadata via the container hostname
       # (keycloak:8080), which would make issuer validation fail. Pin it so every token
       # and discovery document consistently claims http://localhost:8080, matching what
@@ -100,7 +100,7 @@ services:
       - Keycloak__AdminUsername=admin
       - Keycloak__AdminPassword=admin
       # appsettings.json binds Kestrel to specific localhost ports for local `dotnet run`
-      # dev — override both endpoints to bind on all interfaces so the container's
+      # dev – override both endpoints to bind on all interfaces so the container's
       # published port (REST) and other services' gRPC calls (8081) actually work.
       - Kestrel__Endpoints__Http__Url=http://+:8080
       - Kestrel__Endpoints__Grpc__Url=http://+:8081
@@ -130,7 +130,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       # appsettings.Development.json targets running services locally outside Docker
-      # (localhost + distinct ports per service) — override it back to the container
+      # (localhost + distinct ports per service) – override it back to the container
       # hostnames appsettings.json already has for the Docker network.
       - Keycloak__MetadataAddress=http://keycloak:8080/realms/atlas-bank/.well-known/openid-configuration
       - ReverseProxy__Clusters__customers-cluster__Destinations__primary__Address=http://customer-service:8080
@@ -165,7 +165,7 @@ services:
     build:
       context: ./frontend
       # These become build-time constants baked into the JS bundle (Vite inlines
-      # import.meta.env at build, not runtime) — they must be URLs the *browser* can
+      # import.meta.env at build, not runtime) – they must be URLs the *browser* can
       # reach, i.e. the host-published ports below, not container hostnames.
       args:
         VITE_GATEWAY_URL: http://localhost:5000

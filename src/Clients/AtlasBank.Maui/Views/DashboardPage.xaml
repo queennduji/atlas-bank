@@ -26,11 +26,11 @@
                 <Border Style="{StaticResource CardBorder}" IsVisible="{Binding IsShowingCachedData}"
                         BackgroundColor="{AppThemeBinding Light={StaticResource WarningLight}, Dark={StaticResource WarningDark}}">
                     <Label Style="{StaticResource BadgeLabel}" TextColor="{StaticResource White}"
-                           Text="{Binding CachedAsOfUtc, StringFormat='Offline — showing balances saved at {0:t}.'}" />
+                           Text="{Binding CachedAsOfUtc, StringFormat='Offline – showing balances saved at {0:t}.'}" />
                 </Border>
 
                 <CollectionView ItemsSource="{Binding Accounts}" SelectionMode="None"
-                                EmptyView="No accounts yet — open one below to get started."
+                                EmptyView="No accounts yet – open one below to get started."
                                 x:DataType="vm:DashboardViewModel">
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />

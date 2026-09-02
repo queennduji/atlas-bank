@@ -7,7 +7,7 @@ namespace AtlasBank.Clients.Core.Auth;
 /// differently per platform: mobile uses a custom URL scheme + WebAuthenticator (see
 /// AtlasBank.Maui's MobileOAuthBrowserLauncher), desktop has no OS redirect hook so
 /// <see cref="LoopbackOAuthBrowserLauncher"/> opens the system browser and catches it on a
-/// local HTTP listener instead — same trick the Azure CLI and gcloud use.
+/// local HTTP listener instead – same trick the Azure CLI and gcloud use.
 /// </summary>
 public interface IOAuthBrowserLauncher
 {

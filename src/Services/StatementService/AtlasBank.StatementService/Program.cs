@@ -22,7 +22,7 @@ builder.Services.AddDbContext<StatementDbContext>(options =>
 builder.Services.AddScoped<IStatementRepository, StatementRepository>();
 
 // All three gRPC calls this service makes are reads (GetAccount, GetCustomer*,
-// GetTransactionsByAccount) — safe for the full standard resilience pipeline (timeout,
+// GetTransactionsByAccount) – safe for the full standard resilience pipeline (timeout,
 // retry with backoff, circuit breaker), since retrying a read can't double-apply
 // anything.
 var accountGrpcUrl = builder.Configuration["AccountService:GrpcUrl"]!;

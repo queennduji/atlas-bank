@@ -54,7 +54,7 @@ public static class MauiProgram
         services.AddSingleton<IOAuthBrowserLauncher, MobileOAuthBrowserLauncher>();
 #endif
 
-        // plain, unauthenticated client for hitting Keycloak's discovery/token endpoints —
+        // plain, unauthenticated client for hitting Keycloak's discovery/token endpoints –
         // not the same one BearerTokenHandler decorates, since a bearer token on a *token*
         // request wouldn't make sense
         services.AddHttpClient("AtlasBank.Auth");
@@ -78,8 +78,8 @@ public static class MauiProgram
                 client.BaseAddress = new Uri(AppConfig.GatewayBaseUrl);
             })
             .AddHttpMessageHandler<BearerTokenHandler>()
-            // same resilience package the API Gateway uses server-side — retry with
-            // jittered backoff, a circuit breaker, per-attempt timeout — so a blip talking
+            // same resilience package the API Gateway uses server-side – retry with
+            // jittered backoff, a circuit breaker, per-attempt timeout – so a blip talking
             // to the gateway doesn't immediately turn into an error banner
             .AddStandardResilienceHandler(options =>
             {

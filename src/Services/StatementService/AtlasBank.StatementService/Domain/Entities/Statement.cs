@@ -44,7 +44,7 @@ public class Statement
 
         foreach (var tx in transactions)
         {
-            // Transfer credited to this account when ToAccountId matches — callers pass unsigned amount
+            // Transfer credited to this account when ToAccountId matches – callers pass unsigned amount
             var isCredit = tx.type is "Deposit" or "TransferIn";
             runningBalance += isCredit ? tx.amount : -tx.amount;
             if (isCredit) totalCredits += tx.amount;

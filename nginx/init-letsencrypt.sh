@@ -6,7 +6,7 @@
 # then swapping in the real Let's Encrypt certificate once issued.
 #
 # Run once from the repo root on the VM:  bash nginx/init-letsencrypt.sh
-# Safe to re-run — it detects an existing certificate and asks before
+# Safe to re-run – it detects an existing certificate and asks before
 # replacing it.
 set -e
 
@@ -16,7 +16,7 @@ SANS=(atlasbank.dev api.atlasbank.dev auth.atlasbank.dev)
 RSA_KEY_SIZE=4096
 
 # nginx/certbot use a named Docker volume (`certbot-conf`), not a host bind
-# mount — every step below must go through `docker compose run` against the
+# mount – every step below must go through `docker compose run` against the
 # same `certbot` service so it lands in that same volume, not a stray local
 # directory.
 

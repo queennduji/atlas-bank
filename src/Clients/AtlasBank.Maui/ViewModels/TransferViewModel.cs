@@ -15,7 +15,7 @@ public partial class TransferViewModel : ViewModelBase
     private readonly AtlasApiClient _api;
     private readonly INavigationService _navigation;
 
-    // one key per screen visit — a retried SubmitAsync (network blip) reuses it so the
+    // one key per screen visit – a retried SubmitAsync (network blip) reuses it so the
     // gateway treats it as the same request, but opening this page again for a new transfer
     // gets a fresh one
     private readonly string _idempotencyKey = Guid.NewGuid().ToString();

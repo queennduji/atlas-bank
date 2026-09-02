@@ -1,6 +1,6 @@
 namespace AtlasBank.Maui.Services.Navigation;
 
-/// <summary>Route names registered in AppShell.xaml / AppShell.xaml.cs — collected here so a
+/// <summary>Route names registered in AppShell.xaml / AppShell.xaml.cs – collected here so a
 /// typo in a navigation call is a compile error instead of a silent dead button.</summary>
 public static class Routes
 {

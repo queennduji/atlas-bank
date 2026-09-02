@@ -23,7 +23,7 @@ builder.Services.AddDbContext<NotificationDbContext>(options =>
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 // Account service via gRPC. Only GetAccount (a read) is called here, so the full
-// standard resilience pipeline (timeout, retry with backoff, circuit breaker) is safe —
+// standard resilience pipeline (timeout, retry with backoff, circuit breaker) is safe –
 // retrying a read can't double-apply anything.
 builder.Services.AddGrpcClient<AccountGrpcService.AccountGrpcServiceClient>(o =>
 {
@@ -53,7 +53,7 @@ builder.Services.AddMassTransit(x =>
             h.Username(builder.Configuration["RabbitMQ:Username"]!);
             h.Password(builder.Configuration["RabbitMQ:Password"]!);
         });
-        // Explicit, service-scoped endpoint name — MassTransit's default naming
+        // Explicit, service-scoped endpoint name – MassTransit's default naming
         // convention derives the queue name from the consumer type's short name, and
         // another service's consumer for the same event happening to share that name
         // (e.g. every service calling its consumer "TransactionCompletedConsumer") would

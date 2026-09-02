@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace AtlasBank.Clients.Core.Api;
 
 /// <summary>
-/// Typed client for the AtlasBank API Gateway — this file has the shared HTTP plumbing
+/// Typed client for the AtlasBank API Gateway – this file has the shared HTTP plumbing
 /// (auth header, JSON, error mapping); the actual endpoint calls live in the sibling
 /// partial files split by resource (AtlasApiClient.Accounts.cs, .Cards.cs, etc.).
 /// </summary>
@@ -39,7 +39,7 @@ public sealed partial class AtlasApiClient
         {
             // Deposit/withdraw/transfer carry an Idempotency-Key so the gateway can return the
             // original result for a retried request (a transient network drop, a user tapping
-            // twice) instead of moving the money a second time — same contract the web client
+            // twice) instead of moving the money a second time – same contract the web client
             // uses (frontend/src/api/transactions.ts).
             request.Headers.Add("Idempotency-Key", idempotencyKey);
         }

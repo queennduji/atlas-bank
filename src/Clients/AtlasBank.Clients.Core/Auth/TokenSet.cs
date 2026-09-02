@@ -8,7 +8,7 @@ public sealed record TokenSet
     public required string? IdToken { get; init; }
     public required DateTimeOffset AccessTokenExpiresAtUtc { get; init; }
 
-    /// <summary>True once the token is within its refresh window (or already expired) — refreshed
+    /// <summary>True once the token is within its refresh window (or already expired) – refreshed
     /// proactively rather than waiting for the gateway to return a 401 first.</summary>
     public bool NeedsRefresh(TimeProvider clock) =>
         clock.GetUtcNow() >= AccessTokenExpiresAtUtc - RefreshSkew;

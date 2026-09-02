@@ -2,7 +2,7 @@
 
 namespace AtlasBank.Maui.WinUI;
 
-// Windows entry point — just wires up WinUI and hands off to the shared MauiProgram setup.
+// Windows entry point – just wires up WinUI and hands off to the shared MauiProgram setup.
 public partial class App : MauiWinUIApplication
 {
 	public App()

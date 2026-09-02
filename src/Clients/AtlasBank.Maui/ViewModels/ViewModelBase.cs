@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AtlasBank.Maui.ViewModels;
 
-/// <summary>Common busy/error state every screen in this app needs — a loading spinner while
+/// <summary>Common busy/error state every screen in this app needs – a loading spinner while
 /// a request is in flight, and a dismissible banner when one fails.</summary>
 public abstract partial class ViewModelBase : ObservableObject
 {
@@ -30,7 +30,7 @@ public abstract partial class ViewModelBase : ObservableObject
         ErrorMessage = null;
         try
         {
-            // no ConfigureAwait(false) here on purpose — the code after this await updates
+            // no ConfigureAwait(false) here on purpose – the code after this await updates
             // bound properties, and it needs to land back on the UI thread's
             // SynchronizationContext to do that safely, same as it would in WPF
             await operation();

@@ -1,6 +1,6 @@
 name: AtlasBank.Maui
 
-# iOS/MacCatalyst not included — since I need a macOS runner with Xcode
+# iOS/MacCatalyst not included – since I need a macOS runner with Xcode
 on:
   push:
     branches: [main]

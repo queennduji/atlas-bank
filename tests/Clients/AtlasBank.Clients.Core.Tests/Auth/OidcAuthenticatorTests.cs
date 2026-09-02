@@ -92,7 +92,7 @@ public class OidcAuthenticatorTests
     public async Task SignInAsync_TalksToTheConfiguredAuthorityHost_EvenWhenDiscoveryClaimsADifferentOne()
     {
         // the actual bug that got reported: Keycloak always claims "localhost:8080"
-        // (KC_HOSTNAME), but "localhost" inside the emulator isn't the host machine — the
+        // (KC_HOSTNAME), but "localhost" inside the emulator isn't the host machine – the
         // authenticator has to ignore that and stick to whatever host it was configured
         // with (10.0.2.2 here)
         const string emulatorAuthority = "http://10.0.2.2:8080/realms/atlas-bank";

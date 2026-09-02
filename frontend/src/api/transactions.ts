@@ -4,7 +4,7 @@ import type { DepositRequest, Transaction, TransferRequest, WithdrawRequest } fr
 
 // Money-moving requests carry an Idempotency-Key so a request that's retried
 // (a client-side retry, or a user resubmitting after a response was lost to a
-// network blip) doesn't create a second transaction — the backend returns the
+// network blip) doesn't create a second transaction – the backend returns the
 // original result for a repeated key instead of processing it again. Callers
 // that implement their own retry logic should generate the key once and pass
 // it through explicitly so every attempt of the same logical request reuses

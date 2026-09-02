@@ -49,7 +49,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Named so YARP's per-route "AuthorizationPolicy" config (see appsettings.json)
 // can require it on every route except the one genuinely-public one
-// (customer registration) — each downstream service still enforces its own
+// (customer registration) – each downstream service still enforces its own
 // auth independently, but this closes the gap where the gateway itself
 // proxied unauthenticated requests straight through with no policy at all,
 // relying entirely on every service remembering to protect its own routes.
@@ -59,7 +59,7 @@ builder.Services.AddAuthorizationBuilder()
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
-// No downstream DB here — this just confirms the gateway process itself is up
+// No downstream DB here – this just confirms the gateway process itself is up
 // and has finished loading its YARP route config.
 builder.Services.AddHealthChecks();
 

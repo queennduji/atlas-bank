@@ -6,7 +6,7 @@ namespace AtlasBank.Maui.Converters;
 /// <summary>
 /// Maps a status to the same positive/warning/negative/neutral "tone" the web app uses (see
 /// frontend/src/lib/badges.ts), then picks a light- or dark-mode color from the same palette
-/// as frontend/src/index.css — a "Frozen" account should look the same shade of amber here
+/// as frontend/src/index.css – a "Frozen" account should look the same shade of amber here
 /// as it does in the browser.
 /// </summary>
 public sealed class StatusToColorConverter : IValueConverter

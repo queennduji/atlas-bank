@@ -8,7 +8,7 @@ public class PkceUtilTests
     [Fact]
     public void CreateCodeChallenge_MatchesRfc7636AppendixBTestVector()
     {
-        // verifier/challenge pair straight from RFC 7636 Appendix B — if this stops matching,
+        // verifier/challenge pair straight from RFC 7636 Appendix B – if this stops matching,
         // it's the S256 implementation that broke, not the test
         const string verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
         const string expectedChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM";

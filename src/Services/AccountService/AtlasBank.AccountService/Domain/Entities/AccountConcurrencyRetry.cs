@@ -17,7 +17,7 @@ public record ApplyResult(ConcurrencyOutcome Outcome, string? Message = null);
 /// and the AccountGrpcService Credit/Debit RPCs) so the optimistic-concurrency retry
 /// policy lives in exactly one place. Account.Balance is guarded by a concurrency token
 /// (see AccountDbContext, keyed off Postgres's xmin) rather than a database or
-/// distributed lock — there's a single Postgres instance here, so a plain concurrency
+/// distributed lock – there's a single Postgres instance here, so a plain concurrency
 /// check gives the same correctness guarantee without extra infrastructure. Verified live
 /// under up to 50-way genuinely simultaneous writes: zero silent lost updates: every
 /// credit/debit either lands or comes back as an explicit, retryable failure.
@@ -53,7 +53,7 @@ public static class AccountConcurrencyRetry
             {
                 // Retries exhausted under sustained contention on this one row. Fail
                 // loudly and explicitly (safe to retry) instead of letting this surface
-                // as an opaque error — no data was lost, this mutation was simply never
+                // as an opaque error – no data was lost, this mutation was simply never
                 // applied.
                 return new ApplyResult(ConcurrencyOutcome.ConcurrencyExhausted,
                     $"Too many concurrent updates to account {account.Id}. Please retry.");

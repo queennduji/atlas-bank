@@ -22,7 +22,7 @@ builder.Services.AddDbContext<CardDbContext>(options =>
 
 builder.Services.AddScoped<ICardRepository, CardRepository>();
 
-// Both gRPC calls this service makes are reads (GetAccount, GetCustomer) — safe for the
+// Both gRPC calls this service makes are reads (GetAccount, GetCustomer) – safe for the
 // full standard resilience pipeline (timeout, retry with backoff, circuit breaker),
 // since retrying a read can't double-apply anything.
 builder.Services.AddGrpcClient<AccountGrpcService.AccountGrpcServiceClient>(options =>

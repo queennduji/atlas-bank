@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace AtlasBank.Clients.Core.Auth;
 
-/// <summary>Raw shape of Keycloak's token endpoint response (RFC 6749 §5.1) — snake_case on the wire.</summary>
+/// <summary>Raw shape of Keycloak's token endpoint response (RFC 6749 §5.1) – snake_case on the wire.</summary>
 internal sealed record TokenResponse
 {
     [JsonPropertyName("access_token")]
@@ -24,7 +24,7 @@ internal sealed record TokenResponse
     public string? Scope { get; init; }
 }
 
-/// <summary>OAuth error response shape (RFC 6749 §5.2) — returned by Keycloak's token endpoint
+/// <summary>OAuth error response shape (RFC 6749 §5.2) – returned by Keycloak's token endpoint
 /// with a 400 when a code or refresh token is rejected.</summary>
 internal sealed record OAuthErrorResponse
 {

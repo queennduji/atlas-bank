@@ -5,7 +5,7 @@ namespace AtlasBank.LedgerService.Domain.Entities;
 /// <summary>
 /// A single-sided, append-only ledger posting. A deposit or withdrawal produces one entry;
 /// a transfer produces two (a debit on the source account, a credit on the destination
-/// account) from the same <c>TransactionCompletedEvent</c> — standard double-entry
+/// account) from the same <c>TransactionCompletedEvent</c> – standard double-entry
 /// bookkeeping, where every movement of money is recorded from both sides.
 /// </summary>
 public class LedgerEntry

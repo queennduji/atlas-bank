@@ -5,7 +5,7 @@ using AtlasBank.Clients.Core.Json;
 namespace AtlasBank.Maui.Services.Auth;
 
 /// <summary>
-/// Persists the session via <see cref="SecureStorage"/> — Android Keystore, iOS/MacCatalyst
+/// Persists the session via <see cref="SecureStorage"/> – Android Keystore, iOS/MacCatalyst
 /// Keychain, or Windows Credential Locker, depending on the platform. The refresh token
 /// never ends up sitting on disk in plain text the way a Preferences-based store would.
 /// </summary>
@@ -29,7 +29,7 @@ public sealed class MauiSecureTokenStore : ITokenStore
         catch (Exception)
         {
             // Platform keystores can throw if the app's signing key changed (e.g. a fresh
-            // debug install) and the previously encrypted blob can no longer be opened —
+            // debug install) and the previously encrypted blob can no longer be opened –
             // treat that the same as "no saved session" rather than crashing at startup.
             return null;
         }

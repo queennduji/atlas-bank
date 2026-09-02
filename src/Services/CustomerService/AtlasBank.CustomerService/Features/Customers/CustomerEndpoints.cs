@@ -11,7 +11,7 @@ public static class CustomerEndpoints
 {
     public static void MapCustomerEndpoints(this IEndpointRouteBuilder app)
     {
-        // Registration is public — user has no token yet
+        // Registration is public – user has no token yet
         app.MapPost("/api/customers/register", Register);
 
         var group = app.MapGroup("/api/customers").RequireAuthorization();

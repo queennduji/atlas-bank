@@ -15,7 +15,7 @@ public class TransactionCompletedConsumer(
         var evt = context.Message;
         var ct = context.CancellationToken;
 
-        // RabbitMQ/MassTransit delivery is at-least-once — a redelivered message must not
+        // RabbitMQ/MassTransit delivery is at-least-once – a redelivered message must not
         // double-post. One transaction always produces its first entry on evt.AccountId, so
         // checking for that is enough to detect a repeat.
         if (await repo.ExistsByTransactionIdAsync(evt.TransactionId, ct))
@@ -42,7 +42,7 @@ public class TransactionCompletedConsumer(
                 }
                 else
                 {
-                    logger.LogWarning("Transfer {TransactionId} has no ToAccountId — posting the debit side only", evt.TransactionId);
+                    logger.LogWarning("Transfer {TransactionId} has no ToAccountId – posting the debit side only", evt.TransactionId);
                 }
                 break;
 

@@ -8,7 +8,7 @@ namespace AtlasBank.Maui.ViewModels;
 
 /// <summary>
 /// Creates a customer via the public /api/customers/register route. Separate from Keycloak
-/// sign-in — CustomerService provisions the Keycloak user itself as part of creating the
+/// sign-in – CustomerService provisions the Keycloak user itself as part of creating the
 /// customer record. Field set matches frontend/src/pages/Register.tsx.
 /// </summary>
 public partial class RegisterViewModel : ViewModelBase

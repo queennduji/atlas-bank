@@ -31,7 +31,7 @@ builder.Services.AddMassTransit(x =>
             h.Password(builder.Configuration["RabbitMQ:Password"]!);
         });
         cfg.UseMessageRetry(r => r.Intervals(500, 1000, 2000));
-        // Explicit, service-scoped endpoint name — see NotificationService's Program.cs
+        // Explicit, service-scoped endpoint name – see NotificationService's Program.cs
         // for why this can't be left to MassTransit's default per-consumer-type naming.
         cfg.ReceiveEndpoint("ledger-service-transaction-completed", e =>
         {

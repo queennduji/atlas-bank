@@ -296,7 +296,7 @@ public class StatementTests : IClassFixture<StatementServiceFactory>
         stmt.ClosingBalance.Should().Be(750m);
         stmt.GeneratedAt.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromMinutes(1));
 
-        // Fetch by ID — lines are persisted and returned
+        // Fetch by ID – lines are persisted and returned
         var fetched = await (await _client.GetAsync($"/api/statements/{stmt.Id}"))
             .Content.ReadFromJsonAsync<StatementResponse>(JsonOptions);
         fetched!.Id.Should().Be(stmt.Id);

@@ -31,7 +31,7 @@ public class LedgerServiceFactory : WebApplicationFactory<Program>, IAsyncLifeti
             services.AddDbContext<LedgerDbContext>(options =>
                 options.UseNpgsql(_postgresContainer.GetConnectionString()));
 
-            // Endpoint tests exercise the HTTP surface only — keep MassTransit out of the
+            // Endpoint tests exercise the HTTP surface only – keep MassTransit out of the
             // container so it never tries to reach a real RabbitMQ broker.
             var massTransitHosted = services
                 .Where(d => d.ServiceType == typeof(IHostedService) &&

@@ -9,7 +9,7 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
 
-        // Pushed on demand with a required parameter rather than declared as ShellContent —
+        // Pushed on demand with a required parameter rather than declared as ShellContent –
         // see Services/Navigation/Routes.cs for the route names these pages navigate to.
         Routing.RegisterRoute(Routes.AccountDetail, typeof(AccountDetailPage));
         Routing.RegisterRoute(Routes.Transfer, typeof(TransferPage));
