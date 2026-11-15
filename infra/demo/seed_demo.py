@@ -242,6 +242,20 @@ def verify_read_only():
 def main():
     kc = Keycloak(admin_token())
 
+    # The role has to exist before the user does: without it the account would be left as
+    # an ordinary customer whose password is public. A fresh realm import already has it;
+    # a long-lived realm doesn't, so create it here rather than asking for a manual step.
+    status, _, _ = call("GET", f"{kc.base}/roles/{DEMO_ROLE}", token=kc.token, expect=None)
+    if status == 404:
+        print(f"Creating realm role '{DEMO_ROLE}' ...")
+        kc.req("POST", "/roles", {
+            "name": DEMO_ROLE,
+            "description": "Public demo account. The gateway rejects every non-GET request "
+                           "for tokens carrying this role.",
+        })
+    elif status != 200:
+        sys.exit(f"Could not check for realm role '{DEMO_ROLE}' (HTTP {status}).")
+
     user = kc.find_user(DEMO_EMAIL)
     if user is None:
         register_demo_customer()

@@ -51,11 +51,9 @@ credentials are needed.
 
 ## Before the first run
 
-1. Create the realm role once: in the Keycloak admin console, Realm roles, Create role,
-   named `demo-viewer`. (A fresh import from `keycloak/realm-export.json` already has
-   it; the live realm does not.)
-
-2. Deploy the gateway build that contains the middleware, so step 5 above can pass.
+Deploy the gateway build that contains the middleware, so the seeder's last check can
+pass. The `demo-viewer` realm role is created by the seeder if the realm doesn't have it
+yet (a fresh import from `keycloak/realm-export.json` already does).
 
 ## Known limits
 
