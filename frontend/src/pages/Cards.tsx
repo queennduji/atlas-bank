@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useSearchParams } from 'react-router-dom';
 import { CreditCard, Plus, Snowflake, Sun } from 'lucide-react';
-import { useMyAccounts } from '@/api/accounts';
+import { defaultAccountId, useMyAccounts } from '@/api/accounts';
 import { useAccountCards, useFreezeCard, useIssueCard, useUnfreezeCard, useUpdateSpendingLimit } from '@/api/cards';
 import { AccountTypeLabel, type CardType } from '@/api/types';
 import { Card } from '@/components/ui/Card';
@@ -31,7 +31,7 @@ export function Cards() {
   const [params] = useSearchParams();
   const { data: accounts } = useMyAccounts(true);
   const [accountId, setAccountId] = useState(params.get('accountId') ?? '');
-  const activeAccountId = accountId || accounts?.[0]?.id;
+  const activeAccountId = accountId || defaultAccountId(accounts);
 
   const { data: cards, isLoading } = useAccountCards(activeAccountId);
   const issueCard = useIssueCard();

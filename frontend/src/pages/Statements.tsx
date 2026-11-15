@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { FileText, Plus } from 'lucide-react';
-import { useMyAccounts } from '@/api/accounts';
+import { defaultAccountId, useMyAccounts } from '@/api/accounts';
 import { useAccountStatements, useGenerateStatement } from '@/api/statements';
 import { AccountTypeLabel } from '@/api/types';
 import { Card } from '@/components/ui/Card';
@@ -27,7 +27,7 @@ export function Statements() {
   const [params] = useSearchParams();
   const { data: accounts } = useMyAccounts(true);
   const [accountId, setAccountId] = useState(params.get('accountId') ?? '');
-  const activeAccountId = accountId || accounts?.[0]?.id;
+  const activeAccountId = accountId || defaultAccountId(accounts);
 
   const { data: statements, isLoading } = useAccountStatements(activeAccountId);
   const generate = useGenerateStatement();
