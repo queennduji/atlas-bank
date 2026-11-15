@@ -14,6 +14,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/Toast';
 import { ApiError } from '@/api/client';
 import { formatDate, formatMoney } from '@/lib/format';
+import { DEMO_READ_ONLY_HINT, useIsDemo } from '@/auth/useIsDemo';
 
 function defaultPeriod() {
   const end = new Date();
@@ -30,6 +31,7 @@ export function Statements() {
 
   const { data: statements, isLoading } = useAccountStatements(activeAccountId);
   const generate = useGenerateStatement();
+  const isDemo = useIsDemo();
   const toast = useToast();
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -65,7 +67,12 @@ export function Statements() {
               </option>
             ))}
           </Select>
-          <Button icon={<Plus size={16} />} onClick={() => setModalOpen(true)} disabled={!activeAccountId}>
+          <Button
+            icon={<Plus size={16} />}
+            onClick={() => setModalOpen(true)}
+            disabled={!activeAccountId || isDemo}
+            title={isDemo ? DEMO_READ_ONLY_HINT : undefined}
+          >
             Generate
           </Button>
         </div>
@@ -82,7 +89,7 @@ export function Statements() {
             title="No statements yet"
             description="Generate a statement for a date range to see it here."
             action={
-              <Button onClick={() => setModalOpen(true)} disabled={!activeAccountId}>
+              <Button onClick={() => setModalOpen(true)} disabled={!activeAccountId || isDemo} title={isDemo ? DEMO_READ_ONLY_HINT : undefined}>
                 Generate statement
               </Button>
             }

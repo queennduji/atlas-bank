@@ -15,6 +15,7 @@ import { useToast } from '@/components/ui/Toast';
 import { ApiError } from '@/api/client';
 import { formatMoney } from '@/lib/format';
 import { cn } from '@/lib/cn';
+import { DEMO_READ_ONLY_HINT, useIsDemo } from '@/auth/useIsDemo';
 
 type Mode = 'deposit' | 'withdraw' | 'transfer';
 
@@ -41,6 +42,7 @@ export function Transfer() {
   const deposit = useDeposit();
   const withdraw = useWithdraw();
   const transfer = useTransfer();
+  const isDemo = useIsDemo();
   const pending = deposit.isPending || withdraw.isPending || transfer.isPending;
 
   const {
@@ -164,7 +166,7 @@ export function Transfer() {
             />
             <Input label="Description (optional)" {...register('description')} />
 
-            <Button type="submit" loading={pending}>
+            <Button type="submit" loading={pending} disabled={isDemo} title={isDemo ? DEMO_READ_ONLY_HINT : undefined}>
               Confirm {mode}
             </Button>
           </form>

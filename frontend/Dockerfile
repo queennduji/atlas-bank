@@ -1,5 +1,5 @@
 # Build the static bundle. Vite inlines VITE_* env vars into the JS at build time (not
-# runtime), so they're passed in as build ARGs and must be URLs the *browser* can reach —
+# runtime), so they're passed in as build ARGs and must be URLs the *browser* can reach –
 # i.e. the host-published ports (localhost:5000, localhost:8080), not container hostnames.
 FROM node:22-alpine AS build
 WORKDIR /app

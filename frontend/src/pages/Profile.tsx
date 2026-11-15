@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/components/ui/Toast';
 import { ApiError } from '@/api/client';
 import { formatDate } from '@/lib/format';
+import { DEMO_READ_ONLY_HINT, useIsDemo } from '@/auth/useIsDemo';
 
 const schema = z.object({
   firstName: z.string().min(1, 'Required'),
@@ -26,6 +27,7 @@ type FormValues = z.infer<typeof schema>;
 export function Profile() {
   const { data: customer, isLoading } = useMe(true);
   const updateMe = useUpdateMe();
+  const isDemo = useIsDemo();
   const toast = useToast();
 
   const {
@@ -112,7 +114,13 @@ export function Profile() {
               </div>
             </div>
 
-            <Button type="submit" loading={updateMe.isPending} disabled={!isDirty} className="w-fit">
+            <Button
+              type="submit"
+              loading={updateMe.isPending}
+              disabled={!isDirty || isDemo}
+              title={isDemo ? DEMO_READ_ONLY_HINT : undefined}
+              className="w-fit"
+            >
               Save changes
             </Button>
           </form>

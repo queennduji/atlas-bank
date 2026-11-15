@@ -68,6 +68,8 @@ var app = builder.Build();
 app.UseCors();
 app.UseRateLimiter();
 app.UseAuthentication();
+// Must sit after authentication (needs the token's roles) and ahead of the proxy.
+app.UseMiddleware<AtlasBank.ApiGateway.DemoReadOnlyMiddleware>();
 app.UseAuthorization();
 
 app.MapHealthChecks("/health");

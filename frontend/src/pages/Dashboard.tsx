@@ -18,6 +18,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/components/ui/Toast';
 import { formatMoney } from '@/lib/format';
 import { accountStatusBadge } from '@/lib/badges';
+import { DEMO_READ_ONLY_HINT, useIsDemo } from '@/auth/useIsDemo';
 
 const currencies = ['USD', 'EUR', 'GBP'];
 
@@ -28,6 +29,7 @@ const newAccountSchema = z.object({
 type NewAccountForm = z.infer<typeof newAccountSchema>;
 
 export function Dashboard() {
+  const isDemo = useIsDemo();
   const { data: customer, isError: customerError, error } = useMe(true);
   const { data: accounts, isLoading: accountsLoading } = useMyAccounts(true);
   const createAccount = useCreateAccount();
@@ -76,7 +78,12 @@ export function Dashboard() {
           </h1>
           <p className="mt-0.5 text-sm text-(--color-text-muted)">Here's what's happening across your accounts.</p>
         </div>
-        <Button icon={<Plus size={16} />} onClick={() => setModalOpen(true)}>
+        <Button
+          icon={<Plus size={16} />}
+          onClick={() => setModalOpen(true)}
+          disabled={isDemo}
+          title={isDemo ? DEMO_READ_ONLY_HINT : undefined}
+        >
           New account
         </Button>
       </div>
@@ -91,7 +98,11 @@ export function Dashboard() {
             icon={<Wallet size={28} />}
             title="No accounts yet"
             description="Open your first checking or savings account to get started."
-            action={<Button onClick={() => setModalOpen(true)}>Open an account</Button>}
+            action={
+              <Button onClick={() => setModalOpen(true)} disabled={isDemo} title={isDemo ? DEMO_READ_ONLY_HINT : undefined}>
+                Open an account
+              </Button>
+            }
           />
         </Card>
       ) : (

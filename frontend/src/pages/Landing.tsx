@@ -1,8 +1,9 @@
 import { useAuth } from 'react-oidc-context';
 import { Link, Navigate } from 'react-router-dom';
-import { ArrowRight, Landmark, ShieldCheck, Zap, Layers } from 'lucide-react';
+import { ArrowRight, Eye, Landmark, ShieldCheck, Zap, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
+import { DEMO_USERNAME } from '@/auth/useIsDemo';
 
 const features = [
   {
@@ -24,6 +25,10 @@ const features = [
 
 export function Landing() {
   const auth = useAuth();
+
+  // login_hint pre-fills Keycloak's username box; the login theme sees the demo username
+  // there and signs in as the read-only demo account without further clicks.
+  const tryDemo = () => auth.signinRedirect({ login_hint: DEMO_USERNAME });
 
   if (auth.isAuthenticated) return <Navigate to="/dashboard" replace />;
 
@@ -65,6 +70,11 @@ export function Landing() {
           </Link>
           <Button variant="secondary" size="lg" onClick={() => auth.signinRedirect()}>
             Sign in
+          </Button>
+        </div>
+        <div className="mt-4">
+          <Button variant="ghost" size="md" icon={<Eye size={16} />} onClick={tryDemo}>
+            Just looking? Try the read-only demo
           </Button>
         </div>
 

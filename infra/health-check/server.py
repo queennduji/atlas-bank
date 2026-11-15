@@ -7,20 +7,20 @@ Runs directly on the host (NOT in a container) so `os.getloadavg()`,
 than a container's namespaced (and sometimes misleading) view.
 
 Reached two ways:
-  - Publicly, via nginx at https://atlasbank.dev/_health/system — nginx
+  - Publicly, via nginx at https://atlasbank.dev/_health/system – nginx
     (itself a container) proxies to this via `host.docker.internal`, wired
     up in docker-compose.prod.yml's `extra_hosts` on the nginx service.
   - Directly from localhost, for debugging.
 
 Auth: a single shared-secret header (X-Health-Token, checked against the
 ATLAS_HEALTH_TOKEN env var). This isn't defending against a sophisticated
-attacker — the real defense-in-depth is that port 8099 is never opened in
+attacker – the real defense-in-depth is that port 8099 is never opened in
 the VM's OCI security list, so nothing external can reach this process
 directly regardless of the token. The token just keeps casual/automated
 scans of the public path from getting infra internals for free.
 
 Installed as the atlas-health systemd unit (see atlas-health.service in
-this same directory) — deploy notes in README.md.
+this same directory) – deploy notes in README.md.
 """
 import http.server
 import json

@@ -4,6 +4,7 @@ import { Menu } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { ThemeToggle } from './ThemeToggle';
 import { UserMenu } from './UserMenu';
+import { DemoBanner } from './DemoBanner';
 
 export function AppShell() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -28,6 +29,7 @@ export function AppShell() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
+        <DemoBanner />
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-(--color-border) bg-(--color-surface) px-4 sm:px-6">
           <button
             onClick={() => setMobileNavOpen(true)}

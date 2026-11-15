@@ -3,7 +3,7 @@
   <!--
     Shared core for every native AtlasBank client (AtlasBank.Maui now, AtlasBank.Wpf later):
     the Gateway API client, the OAuth2/PKCE flow against Keycloak, and the DTOs that mirror
-    each service's wire contract. No MAUI/WinUI/WPF reference here on purpose — each UI
+    each service's wire contract. No MAUI/WinUI/WPF reference here on purpose – each UI
     project brings its own IOAuthBrowserLauncher and ITokenStore, so this stays a plain
     .NET library a mobile app and a desktop app can both reference as-is.
   -->

@@ -95,13 +95,55 @@
                           <input tabindex="4" class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}" name="login" id="kc-login" type="submit" value="${msg("doLogIn")}"/>
                       </div>
                 </form>
+
+                <#-- AtlasBank addition: one-click read-only demo login for visitors who just want a
+                     look around (recruiters, reviewers). The credentials are public on purpose (see
+                     theme.properties); the gateway rejects every write for this account. When the
+                     visitor arrives from the landing page's "Try the demo" button, the app sends
+                     login_hint=<demo username>, which Keycloak puts in the username box, and we sign
+                     in straight away. The error check stops that from looping if the login ever fails. -->
+                <#if (properties.demoUsername!'')?has_content>
+                    <div id="demo-login"
+                         data-username="${properties.demoUsername}"
+                         data-password="${properties.demoPassword!''}"
+                         data-has-error="${messagesPerField.existsError('username','password')?c}"
+                         style="margin-top:1.5rem;padding:1rem;border:1px dashed #94a3b8;border-radius:0.5rem;text-align:center;">
+                        <p style="margin:0 0 0.75rem;font-size:0.875rem;">
+                            Just looking around? Use the <strong>read-only demo account</strong>.<br/>
+                            Browsing works; moving money is turned off.
+                        </p>
+                        <button type="button" id="demo-login-button" class="${properties.kcButtonClass!} ${properties.kcButtonSecondaryClass!} ${properties.kcButtonBlockClass!}">
+                            Sign in as demo
+                        </button>
+                    </div>
+                    <script>
+                        (function () {
+                            var panel = document.getElementById('demo-login');
+                            var form = document.getElementById('kc-form-login');
+                            var username = document.getElementById('username');
+                            var password = document.getElementById('password');
+                            if (!panel || !form || !username || !password) return;
+
+                            function signInAsDemo() {
+                                username.value = panel.getAttribute('data-username');
+                                password.value = panel.getAttribute('data-password');
+                                form.submit();
+                            }
+
+                            document.getElementById('demo-login-button').addEventListener('click', signInAsDemo);
+
+                            var arrivedAsDemo = username.value === panel.getAttribute('data-username');
+                            if (arrivedAsDemo && panel.getAttribute('data-has-error') !== 'true') signInAsDemo();
+                        })();
+                    </script>
+                </#if>
             </#if>
             </div>
         </div>
         <script type="module" src="${url.resourcesPath}/js/passwordVisibility.js"></script>
     <#elseif section = "info" >
         <#-- AtlasBank override: always show a registration link, even though Keycloak's
-             own self-registration (realm.registrationAllowed) is off — it points at the
+             own self-registration (realm.registrationAllowed) is off – it points at the
              app's real /register flow instead of Keycloak's native one, which would
              create a login with no matching Customer record. -->
         <#if realm.password>

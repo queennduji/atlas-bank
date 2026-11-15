@@ -19,6 +19,7 @@ import { useToast } from '@/components/ui/Toast';
 import { ApiError } from '@/api/client';
 import { formatDate, formatMoney } from '@/lib/format';
 import { cardStatusBadge } from '@/lib/badges';
+import { DEMO_READ_ONLY_HINT, useIsDemo } from '@/auth/useIsDemo';
 
 const issueSchema = z.object({
   type: z.enum(['Debit', 'Credit']),
@@ -38,6 +39,8 @@ export function Cards() {
   const unfreeze = useUnfreezeCard();
   const updateLimit = useUpdateSpendingLimit();
   const toast = useToast();
+
+  const isDemo = useIsDemo();
 
   const [issueOpen, setIssueOpen] = useState(false);
   const [limitCardId, setLimitCardId] = useState<string | null>(null);
@@ -105,7 +108,12 @@ export function Cards() {
               </option>
             ))}
           </Select>
-          <Button icon={<Plus size={16} />} onClick={() => setIssueOpen(true)} disabled={!activeAccountId}>
+          <Button
+            icon={<Plus size={16} />}
+            onClick={() => setIssueOpen(true)}
+            disabled={!activeAccountId || isDemo}
+            title={isDemo ? DEMO_READ_ONLY_HINT : undefined}
+          >
             Issue card
           </Button>
         </div>
@@ -122,7 +130,7 @@ export function Cards() {
             title="No cards on this account"
             description="Issue a debit or credit card to start spending from this account."
             action={
-              <Button onClick={() => setIssueOpen(true)} disabled={!activeAccountId}>
+              <Button onClick={() => setIssueOpen(true)} disabled={!activeAccountId || isDemo} title={isDemo ? DEMO_READ_ONLY_HINT : undefined}>
                 Issue card
               </Button>
             }
@@ -168,6 +176,8 @@ export function Cards() {
                       </div>
                     ) : (
                       <button
+                        disabled={isDemo}
+                        title={isDemo ? DEMO_READ_ONLY_HINT : undefined}
                         onClick={() => {
                           setLimitCardId(card.id);
                           setLimitValue(String(card.spendingLimit));
@@ -186,6 +196,8 @@ export function Cards() {
                         variant="secondary"
                         icon={frozen ? <Sun size={14} /> : <Snowflake size={14} />}
                         loading={freeze.isPending || unfreeze.isPending}
+                        disabled={isDemo}
+                        title={isDemo ? DEMO_READ_ONLY_HINT : undefined}
                         onClick={() => toggleFreeze(card.id, frozen)}
                       >
                         {frozen ? 'Unfreeze' : 'Freeze'}

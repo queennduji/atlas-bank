@@ -10,9 +10,17 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatMoney, formatDateTime } from '@/lib/format';
 import { accountStatusBadge, transactionStatusBadge } from '@/lib/badges';
+import { DEMO_READ_ONLY_HINT, useIsDemo } from '@/auth/useIsDemo';
+
+const moneyActions = [
+  { mode: 'deposit', label: 'Deposit', icon: <ArrowDownLeft size={14} /> },
+  { mode: 'withdraw', label: 'Withdraw', icon: <ArrowUpRight size={14} /> },
+  { mode: 'transfer', label: 'Transfer', icon: <ArrowLeftRight size={14} /> },
+];
 
 export function AccountDetail() {
   const { id } = useParams<{ id: string }>();
+  const isDemo = useIsDemo();
   const { data: account, isLoading } = useAccount(id);
   const { data: transactions, isLoading: txLoading } = useAccountTransactions(id);
 
@@ -51,21 +59,21 @@ export function AccountDetail() {
           </div>
 
           <div className="flex flex-wrap gap-2 border-t border-(--color-border) pt-4">
-            <Link to={`/transfer?accountId=${account.id}&mode=deposit`}>
-              <Button variant="secondary" size="sm" icon={<ArrowDownLeft size={14} />}>
-                Deposit
-              </Button>
-            </Link>
-            <Link to={`/transfer?accountId=${account.id}&mode=withdraw`}>
-              <Button variant="secondary" size="sm" icon={<ArrowUpRight size={14} />}>
-                Withdraw
-              </Button>
-            </Link>
-            <Link to={`/transfer?accountId=${account.id}&mode=transfer`}>
-              <Button variant="secondary" size="sm" icon={<ArrowLeftRight size={14} />}>
-                Transfer
-              </Button>
-            </Link>
+            {moneyActions.map(({ mode, label, icon }) =>
+              isDemo ? (
+                // A disabled button inside a Link can still navigate in some browsers, so
+                // in demo mode these render as plain disabled buttons.
+                <Button key={mode} variant="secondary" size="sm" icon={icon} disabled title={DEMO_READ_ONLY_HINT}>
+                  {label}
+                </Button>
+              ) : (
+                <Link key={mode} to={`/transfer?accountId=${account.id}&mode=${mode}`}>
+                  <Button variant="secondary" size="sm" icon={icon}>
+                    {label}
+                  </Button>
+                </Link>
+              ),
+            )}
             <Link to={`/statements?accountId=${account.id}`}>
               <Button variant="secondary" size="sm" icon={<FileText size={14} />}>
                 Statements

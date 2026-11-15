@@ -34,6 +34,9 @@
     <Project Path="src/Shared/AtlasBank.Shared/AtlasBank.Shared.csproj" />
   </Folder>
   <Folder Name="/tests/" />
+  <Folder Name="/tests/ApiGateway/">
+    <Project Path="tests/ApiGateway/AtlasBank.ApiGateway.Tests/AtlasBank.ApiGateway.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/Clients/">
     <Project Path="tests/Clients/AtlasBank.Clients.Core.Tests/AtlasBank.Clients.Core.Tests.csproj" />
   </Folder>

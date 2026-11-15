@@ -13,6 +13,14 @@ For the request-flow sequence diagram (idempotency + compensating-transaction
 reversal) and the full bounded-context breakdown, see
 [`docs/architecture.md`](docs/architecture.md).
 
+## Try it
+
+The deployed site has a **Try the read-only demo** button on its landing page: one click signs
+you in to a pre-populated account (checking and savings, a dozen transactions, a debit and a
+frozen credit card, a statement). It can browse everything but can't move money – the API
+gateway rejects every non-GET request for that account. See
+[`infra/demo/README.md`](infra/demo/README.md) for how it's enforced and seeded.
+
 ## Services
 
 | Service | Responsibility | Talks to |

@@ -28,6 +28,10 @@
       {
         "name": "admin",
         "description": "Bank administrator"
+      },
+      {
+        "name": "demo-viewer",
+        "description": "Public demo account. The gateway rejects every non-GET request for tokens carrying this role."
       }
     ]
   },
