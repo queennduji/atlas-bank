@@ -16,17 +16,11 @@ otherwise quietly gain write access. Everything in the frontend (the banner, the
 buttons) is courtesy UX on top of that and can be ignored by a determined visitor without
 consequence.
 
-Keycloak's own self-service pages are a separate door the gateway can't see: any signed-in
-user can open "change password", "edit profile" or "set up an authenticator" from a login
-URL carrying `kc_action=...`, which would let a visitor take over the shared account. Nothing
-in this project sends that parameter, so nginx refuses it on `auth.atlasbank.dev`
-(including inside a `request` object, and POSTs to the authorization endpoint). Check
-`nginx/nginx.conf` before changing those rules.
-
-The seeder also takes every other role away. Stock Keycloak gives users `manage-account`,
-which would let the demo user change the shared password from the account console, so the
-demo user is left with `demo-viewer` and nothing else (checked against a local Keycloak: no
-realm roles besides `demo-viewer`, no account-client roles).
+Keycloak's own self-service pages sit outside the gateway, so they are closed off
+separately: nothing in this project uses the `kc_action` login parameter, so nginx refuses
+it on `auth.atlasbank.dev`, along with `request` objects and POSTs to the authorization
+endpoint. See `nginx/nginx.conf` before changing those rules. The seeder also leaves the demo
+user with `demo-viewer` and no other roles.
 
 The login is public by design (the Keycloak page prints it), so the password is not a
 secret. It lives in `keycloak/themes/atlas-bank/login/theme.properties` and in
@@ -73,16 +67,14 @@ KC_ADMIN_USER=admin KC_ADMIN_PASSWORD=admin python3 infra/demo/seed_demo.py
 ## Keycloak admin access
 
 `auth.atlasbank.dev` serves only what the public needs. nginx returns 403 for `/admin`
-(the console and the admin REST API) and `/realms/master` (where the admin account signs
-in, including the password-grant token endpoint), plus any path containing a `;` (Keycloak
-treats `;param` as a path parameter wherever it appears, so `/realms;x=1/master/...` would
-otherwise get around a prefix rule). The `atlas-bank` realm's brute-force protection doesn't
-cover the admin account, so leaving these open let the admin password be guessed at full speed.
+(the console and the admin REST API), `/realms/master` (the admin realm), and any path
+containing a `;`. Admin tooling runs on the VM instead.
 
 Nothing in the project is affected: the services call Keycloak's admin API over the Docker
 network, which doesn't pass through nginx. For your own admin work, use the CLI inside the
-container (`docker exec atlas-bank-keycloak-1 /opt/keycloak/bin/kcadm.sh ...`), or to get the
-browser console back for a while, comment out the `location ~* "(^/(admin|realms/master)|;)"`
+container (`docker exec atlas-bank-keycloak-1 /opt/keycloak/bin/kcadm.sh ...`), run a helper
+script with `sh ~/atlas-bank/infra/run-in-network.sh <script>`, or to get the browser console
+back for a while, comment out the `location ~* "(^/(admin|realms/master)|;)"`
 block in `nginx/nginx.conf` and recreate nginx; put it back afterwards.
 
 ## Before the first run
@@ -93,14 +85,7 @@ yet (a fresh import from `keycloak/realm-export.json` already does).
 
 ## Known limits
 
-- Anyone can type the demo username with a wrong password five times and trigger the
-  realm's brute-force lockout, which temporarily blocks the demo login. Re-running the
-  seeder clears it immediately.
-- The shared account can be tampered with only through a hole this setup is meant to have
-  closed (the `kc_action` block in nginx). If that rule is ever removed, or Keycloak grows
-  another self-service route, re-running the seeder puts the account back as described
-  above, but the lasting fix is closing the route.
-- The "forgot password" link is visible to the demo user, but the realm has no SMTP
-  configured, so it can't send anything.
+- If the demo login ever stops working or the account looks changed, re-run the seeder: it
+  puts the account back exactly as described above, including clearing any login lockout.
 - Per-IP rate limiting at the gateway (100 requests/minute) applies to demo traffic like
   any other.

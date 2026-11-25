@@ -161,39 +161,5 @@
         "email"
       ]
     }
-  ],
-  "users": [
-    {
-      "username": "testuser",
-      "email": "testuser@atlasbank.com",
-      "firstName": "Test",
-      "lastName": "User",
-      "enabled": true,
-      "emailVerified": true,
-      "credentials": [
-        {
-          "type": "password",
-          "value": "password",
-          "temporary": false
-        }
-      ],
-      "realmRoles": ["user"]
-    },
-    {
-      "username": "adminuser",
-      "email": "admin@atlasbank.com",
-      "firstName": "Admin",
-      "lastName": "User",
-      "enabled": true,
-      "emailVerified": true,
-      "credentials": [
-        {
-          "type": "password",
-          "value": "adminpassword",
-          "temporary": false
-        }
-      ],
-      "realmRoles": ["user", "admin"]
-    }
   ]
 }
