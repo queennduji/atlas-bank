@@ -212,13 +212,12 @@ def seed_banking_data(token):
     })
 
 
-def lock_down(kc, user_id):
-    print("Locking the account down ...")
-    # Exactly one role. Dropping Keycloak's default roles also drops the account-console
-    # roles (manage-account), so the shared password can't be changed from the UI.
-    kc.set_realm_roles(user_id, [DEMO_ROLE])
-    kc.req("PUT", f"/users/{user_id}/reset-password",
-           {"type": "password", "value": DEMO_PASSWORD, "temporary": False})
+def scrub_account(kc, user_id):
+    """Undoes anything Keycloak's self-service pages could have changed on the account.
+
+    Has to run before the first demo-user login: an added authenticator makes the password
+    alone stop working, and the seeder needs that login to get a token.
+    """
     # Keycloak's own pages (reachable with a crafted kc_action link, which nginx now blocks)
     # could have added an authenticator or security key, which would make every visitor's
     # login ask for it. The password is the only credential the demo account should have.
@@ -242,6 +241,15 @@ def lock_down(kc, user_id):
     kc.req("PUT", f"/users/{user_id}", rep)
     # Ends any session still signed in, including one an attacker might hold.
     kc.req("POST", f"/users/{user_id}/logout")
+
+
+def lock_down(kc, user_id):
+    print("Locking the account down ...")
+    # Exactly one role. Dropping Keycloak's default roles also drops the account-console
+    # roles (manage-account), so the shared password can't be changed from the UI.
+    kc.set_realm_roles(user_id, [DEMO_ROLE])
+    kc.req("PUT", f"/users/{user_id}/reset-password",
+           {"type": "password", "value": DEMO_PASSWORD, "temporary": False})
     # Clears any brute-force lockout from someone hammering the public login.
     kc.req("DELETE", f"/attack-detection/brute-force/users/{user_id}")
 
@@ -289,6 +297,7 @@ def main():
     kc.req("PUT", f"/users/{user_id}/reset-password",
            {"type": "password", "value": DEMO_PASSWORD, "temporary": False})
     kc.req("DELETE", f"/attack-detection/brute-force/users/{user_id}")
+    scrub_account(kc, user_id)
     current = [r["name"] for r in kc.realm_roles(user_id)]
     if DEMO_ROLE in current:
         kc.set_realm_roles(user_id, [r for r in current if r != DEMO_ROLE])
