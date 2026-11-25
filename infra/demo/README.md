@@ -48,18 +48,42 @@ secret. It lives in `keycloak/themes/atlas-bank/login/theme.properties` and in
 5. proves the lock-down by reading with a fresh token (expects 200) and attempting a
    write (expects 403), and exits non-zero if either is wrong.
 
-All data is synthetic. Run it wherever it can reach Keycloak and the gateway, passing
-the Keycloak admin credentials in the environment (never as arguments, never committed):
+All data is synthetic.
+
+**In production, run it on the VM:**
 
 ```bash
-KEYCLOAK_URL=https://auth.atlasbank.dev \
-GATEWAY_URL=https://api.atlasbank.dev \
-KC_ADMIN_USER=<admin user> KC_ADMIN_PASSWORD=<admin password> \
-python3 infra/demo/seed_demo.py
+sh ~/atlas-bank/infra/demo/seed-on-vm.sh
 ```
 
-Locally, with the default `docker compose up`, no variables beyond the admin
-credentials are needed.
+`seed-on-vm.sh` runs the seeder in a throwaway container on the compose network, talking to
+Keycloak and the gateway directly (`http://keycloak:8080`, `http://api-gateway:8080`). It
+has to work this way because nginx refuses Keycloak's admin API and the `master` realm from
+the internet (see below), so the old approach of running the script from a laptop against
+`https://auth.atlasbank.dev` gets a 403. The script reads `KEYCLOAK_ADMIN_PASSWORD` from the
+repo's `.env`, hands it to the container by variable name, and never prints it.
+
+**Locally**, with the default `docker compose up` (no nginx in front), run the script
+directly; no variables beyond the admin credentials are needed:
+
+```bash
+KC_ADMIN_USER=admin KC_ADMIN_PASSWORD=admin python3 infra/demo/seed_demo.py
+```
+
+## Keycloak admin access
+
+`auth.atlasbank.dev` serves only what the public needs. nginx returns 403 for `/admin`
+(the console and the admin REST API) and `/realms/master` (where the admin account signs
+in, including the password-grant token endpoint), plus any path containing a `;` (Keycloak
+treats `;param` as a path parameter wherever it appears, so `/realms;x=1/master/...` would
+otherwise get around a prefix rule). The `atlas-bank` realm's brute-force protection doesn't
+cover the admin account, so leaving these open let the admin password be guessed at full speed.
+
+Nothing in the project is affected: the services call Keycloak's admin API over the Docker
+network, which doesn't pass through nginx. For your own admin work, use the CLI inside the
+container (`docker exec atlas-bank-keycloak-1 /opt/keycloak/bin/kcadm.sh ...`), or to get the
+browser console back for a while, comment out the `location ~* "(^/(admin|realms/master)|;)"`
+block in `nginx/nginx.conf` and recreate nginx; put it back afterwards.
 
 ## Before the first run
 
