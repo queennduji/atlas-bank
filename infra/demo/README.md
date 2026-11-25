@@ -6,11 +6,22 @@ the Keycloak login page has a matching **Sign in as demo** panel.
 
 ## How read-only is enforced
 
-The guarantee lives in one place: `DemoReadOnlyMiddleware` in the API gateway. Any
-request carrying a token with the `demo-viewer` realm role is allowed if it is a
-GET/HEAD/OPTIONS and answered `403` otherwise, before it reaches a service. Everything
-in the frontend (the banner, the disabled buttons) is courtesy UX on top of that and
-can be ignored by a determined visitor without consequence.
+The guarantee lives in one place: `DemoReadOnlyMiddleware` in the API gateway. A request
+from the demo user is allowed if it is a GET/HEAD/OPTIONS and answered `403` otherwise,
+before it reaches a service. The demo user is recognised two ways, and either is enough:
+the `demo-viewer` realm role, or the account's own username/email (`Demo:Email` in the
+gateway's `appsettings.json`). The second is a backstop so the check fails closed: if a
+Keycloak change ever kept the role out of the token, the public-password account would
+otherwise quietly gain write access. Everything in the frontend (the banner, the disabled
+buttons) is courtesy UX on top of that and can be ignored by a determined visitor without
+consequence.
+
+Keycloak's own self-service pages are a separate door the gateway can't see: any signed-in
+user can open "change password", "edit profile" or "set up an authenticator" from a login
+URL carrying `kc_action=...`, which would let a visitor take over the shared account. Nothing
+in this project sends that parameter, so nginx refuses it on `auth.atlasbank.dev`
+(including inside a `request` object, and POSTs to the authorization endpoint). Check
+`nginx/nginx.conf` before changing those rules.
 
 The seeder also takes every other role away. Stock Keycloak gives users `manage-account`,
 which would let the demo user change the shared password from the account console, so the
@@ -31,8 +42,9 @@ secret. It lives in `keycloak/themes/atlas-bank/login/theme.properties` and in
 3. opens a checking and a savings account and posts sample deposits, withdrawals and
    transfers, issues a debit and a (frozen) credit card, and generates a statement –
    but only if the account has no data yet, so re-runs never pile up duplicates;
-4. locks the account down again (only `demo-viewer`, password reset to the known
-   value, brute-force lockout cleared);
+4. locks the account down again: only `demo-viewer`, the password as the only credential
+   (any authenticator or security key is removed), name and email back to their known
+   values, existing sessions ended, brute-force lockout cleared;
 5. proves the lock-down by reading with a fresh token (expects 200) and attempting a
    write (expects 403), and exits non-zero if either is wrong.
 
@@ -60,9 +72,10 @@ yet (a fresh import from `keycloak/realm-export.json` already does).
 - Anyone can type the demo username with a wrong password five times and trigger the
   realm's brute-force lockout, which temporarily blocks the demo login. Re-running the
   seeder clears it immediately.
-- Not tested: Keycloak's application-initiated actions (an authorize URL carrying
-  `kc_action=UPDATE_PASSWORD`) might let a signed-in demo user change the shared password
-  without any account-console role. If someone does, re-running the seeder restores it.
+- The shared account can be tampered with only through a hole this setup is meant to have
+  closed (the `kc_action` block in nginx). If that rule is ever removed, or Keycloak grows
+  another self-service route, re-running the seeder puts the account back as described
+  above, but the lasting fix is closing the route.
 - The "forgot password" link is visible to the demo user, but the realm has no SMTP
   configured, so it can't send anything.
 - Per-IP rate limiting at the gateway (100 requests/minute) applies to demo traffic like

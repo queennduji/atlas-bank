@@ -41,6 +41,8 @@ CLIENT_ID = "atlas-bank-app"
 DEMO_EMAIL = "demo@atlasbank.dev"
 DEMO_PASSWORD = "Demo-Viewer-2026"
 DEMO_ROLE = "demo-viewer"
+DEMO_FIRST_NAME = "Alex"
+DEMO_LAST_NAME = "Morgan"
 
 
 def call(method, url, *, token=None, body=None, form=None, headers=None, expect=(200, 201, 204)):
@@ -109,8 +111,10 @@ class Keycloak:
     def req(self, method, path, body=None, expect=(200, 201, 204)):
         return call(method, f"{self.base}{path}", token=self.token, body=body, expect=expect)[1]
 
-    def find_user(self, email):
-        users = self.req("GET", f"/users?email={urllib.parse.quote(email)}&exact=true")
+    def find_user(self, username):
+        # By username, not email: Keycloak's self-service profile form lets a signed-in user
+        # change their email but not their username, so this still finds a tampered account.
+        users = self.req("GET", f"/users?username={urllib.parse.quote(username)}&exact=true")
         return users[0] if users else None
 
     def realm_roles(self, user_id):
@@ -134,8 +138,8 @@ def register_demo_customer():
         "POST",
         f"{GATEWAY_URL}/api/customers/register",
         body={
-            "firstName": "Alex",
-            "lastName": "Morgan",
+            "firstName": DEMO_FIRST_NAME,
+            "lastName": DEMO_LAST_NAME,
             "email": DEMO_EMAIL,
             "password": DEMO_PASSWORD,
             "phoneNumber": "+15550100199",
@@ -215,11 +219,29 @@ def lock_down(kc, user_id):
     kc.set_realm_roles(user_id, [DEMO_ROLE])
     kc.req("PUT", f"/users/{user_id}/reset-password",
            {"type": "password", "value": DEMO_PASSWORD, "temporary": False})
+    # Keycloak's own pages (reachable with a crafted kc_action link, which nginx now blocks)
+    # could have added an authenticator or security key, which would make every visitor's
+    # login ask for it. The password is the only credential the demo account should have.
+    for credential in kc.req("GET", f"/users/{user_id}/credentials"):
+        if credential["type"] != "password":
+            print(f"  removing unexpected {credential['type']} credential")
+            kc.req("DELETE", f"/users/{user_id}/credentials/{credential['id']}")
+
     # Keycloak's user-profile validation wants the full representation back on a PUT, so
-    # fetch it and change only what we mean to.
+    # fetch it and change only what we mean to. Profile fields go back to known values in
+    # case they were edited.
     rep = kc.req("GET", f"/users/{user_id}")
-    rep.update({"enabled": True, "emailVerified": True, "requiredActions": []})
+    rep.update({
+        "enabled": True,
+        "emailVerified": True,
+        "requiredActions": [],
+        "email": DEMO_EMAIL,
+        "firstName": DEMO_FIRST_NAME,
+        "lastName": DEMO_LAST_NAME,
+    })
     kc.req("PUT", f"/users/{user_id}", rep)
+    # Ends any session still signed in, including one an attacker might hold.
+    kc.req("POST", f"/users/{user_id}/logout")
     # Clears any brute-force lockout from someone hammering the public login.
     kc.req("DELETE", f"/attack-detection/brute-force/users/{user_id}")
 
