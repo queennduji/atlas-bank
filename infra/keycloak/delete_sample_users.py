@@ -5,7 +5,8 @@ Those two accounts shipped with passwords that were committed to the repo, so a 
 was imported from the old file has working logins that anyone could read. The export no
 longer contains them; this removes them from a realm that already does. It deletes exactly
 these usernames and nothing else, is safe to re-run, and finishes by trying each old login
-to confirm it no longer works.
+to confirm it no longer works. (It checks that the accounts are gone by looking them up, not by
+logging in: the web client's password grant is closed, so a failed login would prove nothing.)
 
 Required environment:  KC_ADMIN_USER, KC_ADMIN_PASSWORD   (Keycloak master-realm admin)
 Optional environment:  KEYCLOAK_URL (default http://localhost:8080), KEYCLOAK_REALM (default atlas-bank)
@@ -22,9 +23,8 @@ import urllib.request
 KEYCLOAK_URL = os.environ.get("KEYCLOAK_URL", "http://localhost:8080").rstrip("/")
 REALM = os.environ.get("KEYCLOAK_REALM", "atlas-bank")
 
-# (username, the password the old export gave it). Hard-coded on purpose: this script must
-# never be able to delete anything else.
-SAMPLE_USERS = [("testuser", "password"), ("adminuser", "adminpassword")]
+# Hard-coded on purpose: this script must never be able to delete anything else.
+SAMPLE_USERS = [("testuser", "testuser@atlasbank.com"), ("adminuser", "admin@atlasbank.com")]
 
 
 def request(method, url, *, token=None, form=None, expect=(200, 204)):
@@ -57,27 +57,27 @@ def main():
     token = body["access_token"]
     base = f"{KEYCLOAK_URL}/admin/realms/{REALM}"
 
+    def find(query):
+        _, users = request("GET", f"{base}/users?{query}&exact=true", token=token)
+        return users
+
     for username, _ in SAMPLE_USERS:
-        _, users = request("GET", f"{base}/users?username={urllib.parse.quote(username)}&exact=true", token=token)
+        users = find(f"username={urllib.parse.quote(username)}")
         if not users:
             print(f"{username}: already gone")
             continue
         request("DELETE", f"{base}/users/{users[0]['id']}", token=token)
         print(f"{username}: deleted")
 
-    print("Checking the old logins no longer work ...")
-    still_working = []
-    for username, password in SAMPLE_USERS:
-        status, _ = request(
-            "POST", f"{KEYCLOAK_URL}/realms/{REALM}/protocol/openid-connect/token",
-            form={"grant_type": "password", "client_id": "atlas-bank-app",
-                  "username": username, "password": password, "scope": "openid"},
-            expect=None)
-        print(f"  {username}: HTTP {status} ({'STILL WORKS' if status == 200 else 'rejected'})")
-        if status == 200:
-            still_working.append(username)
-    if still_working:
-        sys.exit(f"Still able to log in: {', '.join(still_working)}")
+    print("Checking the accounts are really gone ...")
+    remaining = []
+    for username, email in SAMPLE_USERS:
+        found = find(f"username={urllib.parse.quote(username)}") + find(f"email={urllib.parse.quote(email)}")
+        print(f"  {username}: {'STILL EXISTS' if found else 'gone'}")
+        if found:
+            remaining.append(username)
+    if remaining:
+        sys.exit(f"Still present: {', '.join(remaining)}")
     print("Done.")
 
 

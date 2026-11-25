@@ -42,6 +42,14 @@ secret. It lives in `keycloak/themes/atlas-bank/login/theme.properties` and in
 5. proves the lock-down by reading with a fresh token (expects 200) and attempting a
    write (expects 403), and exits non-zero if either is wrong.
 
+The seeder signs in as the demo user with Keycloak's password grant, which is switched off on
+the web client the rest of the time (`directAccessGrantsEnabled: false`). The script opens it
+only for the part that needs it and closes it again before exiting, restoring the lock-down
+too if the run fails part-way, then checks the grant really is closed. If a run is killed
+outright rather than failing, just run the script again: it starts by closing the grant.
+Because of this, one-off checks that log in with a password directly (for example `curl` against
+the token endpoint) don't work any more unless the grant is open; use the browser flow instead.
+
 All data is synthetic.
 
 **In production, run it on the VM:**

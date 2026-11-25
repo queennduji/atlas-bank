@@ -6,6 +6,10 @@ account has none yet, and always finishes by re-locking the account down (known
 password, `demo-viewer` role only, brute-force lockout cleared). If someone ever
 vandalises the shared demo login, re-running this puts it back.
 
+The seeder needs to sign in as the demo user, which uses Keycloak's password grant. That
+grant is switched off on the web client the rest of the time, so the script opens it for the
+few seconds it needs and closes it again before it exits, even if it fails part-way.
+
 Everything the data needs goes through the public API as the demo user itself, so
 the accounts, ledger entries, cards and statements are produced by the real
 services rather than inserted into their databases. All of it is synthetic.
@@ -110,6 +114,16 @@ class Keycloak:
 
     def req(self, method, path, body=None, expect=(200, 201, 204)):
         return call(method, f"{self.base}{path}", token=self.token, body=body, expect=expect)[1]
+
+    def set_password_grant(self, enabled):
+        """Opens or closes the password grant on the web client. Safe to call repeatedly."""
+        clients = self.req("GET", f"/clients?clientId={urllib.parse.quote(CLIENT_ID)}")
+        if not clients:
+            sys.exit(f"Keycloak client '{CLIENT_ID}' not found.")
+        rep = self.req("GET", f"/clients/{clients[0]['id']}")
+        if rep.get("directAccessGrantsEnabled") != enabled:
+            rep["directAccessGrantsEnabled"] = enabled
+            self.req("PUT", f"/clients/{rep['id']}", rep)
 
     def find_user(self, username):
         # By username, not email: Keycloak's self-service profile form lets a signed-in user
@@ -269,8 +283,22 @@ def verify_read_only():
     print("OK: reads succeed, writes are refused with 403.")
 
 
+def verify_password_grant_closed():
+    status, _, _ = call(
+        "POST", f"{KEYCLOAK_URL}/realms/{REALM}/protocol/openid-connect/token",
+        form={"grant_type": "password", "client_id": CLIENT_ID, "username": DEMO_EMAIL,
+              "password": DEMO_PASSWORD, "scope": "openid"},
+        expect=None)
+    if status == 200:
+        sys.exit("The password grant is still open on the web client. Close it: "
+                 "Keycloak admin > Clients > atlas-bank-app > Direct access grants off.")
+    print(f"OK: the password grant is closed again (HTTP {status}).")
+
+
 def main():
     kc = Keycloak(admin_token())
+    # Start from "closed", in case an earlier run was killed before it could clean up.
+    kc.set_password_grant(False)
 
     # The role has to exist before the user does: without it the account would be left as
     # an ordinary customer whose password is public. A fresh realm import already has it;
@@ -302,9 +330,22 @@ def main():
     if DEMO_ROLE in current:
         kc.set_realm_roles(user_id, [r for r in current if r != DEMO_ROLE])
 
-    seed_banking_data(demo_user_token())
-    lock_down(kc, user_id)
-    verify_read_only()
+    # Open the password grant only for the part that signs in as the demo user, and whatever
+    # happens, close it again and put the lock-down back (the role was taken off above). A fresh
+    # admin token is used for that: the first one is short-lived and may have expired by now.
+    kc.set_password_grant(True)
+    locked_down = False
+    try:
+        seed_banking_data(demo_user_token())
+        lock_down(kc, user_id)
+        locked_down = True
+        verify_read_only()
+    finally:
+        cleanup = Keycloak(admin_token())
+        cleanup.set_password_grant(False)
+        if not locked_down:
+            lock_down(cleanup, user_id)
+    verify_password_grant_closed()
     print(f"\nDone. Demo login: {DEMO_EMAIL} / {DEMO_PASSWORD}")
 
 
